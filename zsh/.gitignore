@@ -1,0 +1,4 @@
+local.zsh
+plugins/
+.zcompdump*
+*.zwc

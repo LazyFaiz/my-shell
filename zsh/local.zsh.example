@@ -1,0 +1,9 @@
+# Copy to local.zsh for machine-specific settings (loaded last).
+# export EDITOR=code
+# export VISUAL="$EDITOR"
+# path=("$HOME/work/bin" $path)
+# bindkey -e  # Switch from Vi to Emacs key bindings.
+
+# Optional nvm initialization:
+# export NVM_DIR="$HOME/.nvm"
+# [[ ! -s "$NVM_DIR/nvm.sh" ]] || source "$NVM_DIR/nvm.sh"
