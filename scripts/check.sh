@@ -8,5 +8,5 @@ for script in scripts/*.sh scripts/lib/*.sh; do bash -n "$script"; done
 syntax_dir=$(mktemp -d)
 trap 'rm -rf -- "$syntax_dir"' EXIT
 "$zsh_bin" -fc '[[ -z ${ZSH_TEST_MODULE_PATH:-} ]] || module_path=("$ZSH_TEST_MODULE_PATH" $module_path); zcompile -U "$@"' -- "$syntax_dir/check.zwc" zsh/.zshrc zsh/.zshenv zsh/*.zsh
-python3 -B -m unittest discover -s tests -v
+python3 -B scripts/run-tests.py
 git diff --check
