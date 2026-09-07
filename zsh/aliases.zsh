@@ -1,11 +1,11 @@
 if (( $+commands[eza] )); then
   alias ls='eza --icons=auto'
-  alias ll='eza -lh --icons=auto --git'
+  alias ll='eza -lah --icons=auto --git'
   alias la='eza -lah --icons=auto --git'
   alias tree='eza --tree --icons=auto'
   compdef eza=ls
 else
-  alias ll='ls -lh'
+  alias ll='ls -lah'
   alias la='ls -lah'
 fi
 

@@ -70,7 +70,7 @@ Ctrl+T / Ctrl+R 的 fzf 集成需要支持 `fzf --zsh` 的版本，或系统包�
 | `prompt.zsh` / `starship.toml` | 提示符及主题 |
 | `local.zsh.example` | 私有设置示例，复制为 `local.zsh` 使用 |
 
-常用命令：`ll`、`la`、`..`、`...`、`gs`、`gd`、`glog`、`mkcd 目录名`；`c 文件名` 用 bat 查看文件。保留原始 `cat`、`grep` 的行为。
+常用命令：`ll`、`la`、`..`、`...`、`gs`、`gd`、`glog`、`mkcd 目录名`；`c 文件名` 用 bat 查看文件。`ll` 和 `la` 均以详细列表显示文件（包含隐藏文件），有 eza 时使用 eza，否则使用 ls。保留原始 `cat`、`grep` 的行为。
 
 历史文件位于 `$XDG_STATE_HOME/zsh/history`，补全缓存位于 `$XDG_CACHE_HOME/zsh`。历史中以空格开头的命令不保存。
 
