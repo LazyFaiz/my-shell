@@ -12,6 +12,10 @@
 
 增强工具未安装时可使用基础配置。PowerShell 不能直接加载这些 Zsh 配置，Windows 用户请在 WSL 中使用。
 
+## 完整安装
+
+查看 [多系统安装指南](docs/install.md)，覆盖 Debian、Ubuntu、Arch Linux、Fedora 和 macOS，包含 btop、jq、tealdeer、git-delta、AstroNvim、Zellij 及 Zsh 插件。共用配置脚本会备份已有设置，不安装 Go。
+
 ## 快速试用
 
 先在目标系统安装 Zsh 和 Git，然后在 Bash 或 Zsh 中执行：
@@ -39,6 +43,8 @@ exec zsh
 .
 ├── README.md
 ├── LICENSE               # MIT 许可（保留上游版权声明）
+├── docs/install.md       # 多系统依赖、安装与恢复说明
+├── scripts/install-config.sh # 用户配置安装脚本
 └── zsh/
     ├── .zshenv           # 环境变量与 XDG 路径
     ├── .zshrc            # 主入口、历史与补全

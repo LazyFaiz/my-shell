@@ -6,6 +6,8 @@
 
 ## 安装
 
+完整工具环境（AstroNvim、Zellij、btop、jq、tealdeer、git-delta）请按 [多系统安装指南](../docs/install.md) 操作。以下为仅复制 Zsh 配置的方式。
+
 至少需要 Zsh；安装插件还需要 Git。请先在目标系统安装这些依赖。可选增强工具为 `fzf`、`fd`、`bat`、`eza`、`zoxide`、`starship`、`neovim`、`ripgrep`。Ubuntu 的 `fdfind`、`batcat` 会自动识别。
 
 Starship 使用官方 [Pastel Powerline Preset](https://starship.rs/presets/pastel-powerline)，包含柔和色块、Powerline 分隔符、用户名、目录、Git 状态、语言版本和时间。请在终端中安装并启用 Nerd Font（官方示例使用 Caskaydia Cove Nerd Font），以正确显示图标和分隔符。
@@ -13,8 +15,8 @@ Starship 使用官方 [Pastel Powerline Preset](https://starship.rs/presets/past
 在 **Zsh 或 Bash** 中进入本目录，然后复制配置（`cp -i` 会在存在同名文件时询问）：
 
 ```sh
-# WSL 下本项目通常位于此处：
-cd /mnt/f/Desktop/product/shell/zsh
+# 在仓库的 zsh 目录中执行：
+cd ~/my-shell/zsh
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/zsh"
 mkdir -p "$config_dir"
 cp -i .zshenv .zshrc aliases.zsh bindings.zsh fzf.zsh plugins.zsh \
@@ -86,3 +88,20 @@ ZDOTDIR="$PWD" zsh
 ```
 
 恢复旧配置时，删除此前添加到 `~/.zshenv` 的引导段，并恢复原来的 `ZDOTDIR` 设置，然后重新打开终端。
+
+## 新增工具命令
+
+| 命令 | 功能 |
+| --- | --- |
+| `btop` | 系统监控 |
+| `lt` | 两层目录树（eza） |
+| `rgh 关键词` | 包含隐藏文件的文本搜索 |
+| `t 命令` | 查看 tldr 示例（首次先 `tldr --update`） |
+| `jqp 文件.json` | 格式化 JSON，也可接收管道输入 |
+| `ports` | Linux 显示 TCP/UDP 监听端口；macOS 回退为 TCP 监听端口 |
+| `disk` / `mem` | 磁盘 / 内存；macOS 内存输出使用 vm_stat |
+| `zj` | 打开 Zellij |
+| `za work` / `zl` | 创建或连接 work 会话 / 列出会话 |
+| `extract 文件` | 解压到文件旁的新 `.extracted` 目录 |
+
+可选工具未安装时不会定义相应别名。`extract` 支持 tar、tar.gz、tar.bz2、tar.xz、zip、7z、rar；RAR 支持取决于安装的 7-Zip 构建。`c` 仍用于 bat 查看文件，不表示清屏。delta 通过安装脚本的 `--delta` 选项配置 Git 后生效。
