@@ -78,28 +78,28 @@ export PATH="$HOME/.local/bin:$PATH"
 
 重复执行会重新下载安装当时的最新稳定版。当前终端需要执行 `rehash`（Zsh）或 `hash -r`（Bash），或重新打开 Zsh，然后用 `command -v nvim` 和 `nvim --version` 确认。
 
-### Linux：安装 Zellij
+### Linux / macOS：自动安装 Zellij
+
+主脚本加 `--zellij` 即可安装 GitHub 最新稳定版；也可单独运行：
 
 ```bash
-bash <<'BASH'
-set -euo pipefail
-case "$(uname -m)" in
-  x86_64) platform=x86_64 ;;
-  aarch64|arm64) platform=aarch64 ;;
-  *) echo '此步骤仅支持 Linux x86_64 / ARM64'; exit 1 ;;
-esac
-work=$(mktemp -d)
-trap 'rm -rf -- "$work"' EXIT
-curl -fL --retry 3 "https://github.com/zellij-org/zellij/releases/latest/download/zellij-$platform-unknown-linux-musl.tar.gz" -o "$work/zellij.tar.gz"
-tar -xzf "$work/zellij.tar.gz" -C "$work"
-"$work/zellij" --version
-mkdir -p "$HOME/.local/bin"
-if [ -e "$HOME/.local/bin/zellij" ] || [ -L "$HOME/.local/bin/zellij" ]; then
-  mv "$HOME/.local/bin/zellij" "$HOME/.local/bin/zellij.bak.$(date +%Y%m%d-%H%M%S).$$"
-fi
-install -m 0755 "$work/zellij" "$HOME/.local/bin/zellij"
-BASH
+cd ~/my-shell
+bash scripts/install-zellij.sh
+export PATH="$HOME/.local/bin:$PATH"
 ```
+
+支持 Linux/macOS 的 x86_64、ARM64，依赖 `curl`、`jq`、`tar` 和 SHA-256 工具。下载后校验 GitHub 发布摘要，并运行 `zellij --version`，成功后才切换 `~/.local/bin/zellij`。旧入口备份在 `~/.local/opt/zellij-entry-backup-*/`，版本程序位于 `~/.local/opt/zellij-版本-随机目录/`。重复执行会重新下载安装最新稳定版，不改 Zellij 配置，不自动创建或启动会话。
+
+已有 Zsh 配置的服务器，可以直接更新并执行：
+
+```bash
+cd ~/my-shell
+git pull --ff-only
+bash scripts/install-config.sh --zellij
+exec zsh
+```
+
+然后使用 `zellij --version` 检查，`za work` 创建或连接会话。
 
 ### Linux：安装 Starship（软件源没有时）
 
@@ -130,20 +130,21 @@ starship --version
 ```bash
 git clone https://github.com/LazyFaiz/my-shell.git ~/my-shell
 cd ~/my-shell
-bash scripts/install-config.sh --astronvim --delta
+bash scripts/install-config.sh --astronvim --zellij --delta
 ```
 
 已有仓库时进入原目录执行 `git pull --ff-only`，不必重新克隆。
 
-脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` 时额外从 GitHub 安装最新稳定版 Neovim 到用户目录。它会：
+脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` / `--zellij` 时额外从 GitHub 安装对应工具的最新稳定版到用户目录。它会：
 
 - 备份旧 Zsh 配置、入口文件；更新模块时保留 `local.zsh`。
 - 在 `~/.zshenv` 追加一次配置入口，保留原文件内容。
+- 使用 `--zellij` 时安装 GitHub 最新稳定版 Zellij，备份旧入口；原配置与会话不变。
 - 使用 `--delta` 时备份 Git 配置，再启用彩色 diff、行号、差异导航；不改 Git 用户名和邮箱。
 - 使用 `--astronvim` 时安装最新稳定版 Neovim，再克隆官方 AstroNvim 模板；已有 Neovim 配置会保留，但 Neovim 程序仍会更新。
 - 首次安装 AstroNvim 时，将原有 Neovim data/state/cache 目录移到同级 `.bak.时间戳` 目录。
 
-省略两个选项只安装 Zsh 配置。备份位置会在完成后打印，默认在 `~/.local/state/my-shell/backups/`。如果以前设置过自定义 `ZDOTDIR`，需确保 Zsh 实际读取的 `.zshenv` 也包含这里的入口，或先取消旧 `ZDOTDIR` 再启动。
+省略全部选项只安装 Zsh 配置。备份位置会在完成后打印，默认在 `~/.local/state/my-shell/backups/`。如果以前设置过自定义 `ZDOTDIR`，需确保 Zsh 实际读取的 `.zshenv` 也包含这里的入口，或先取消旧 `ZDOTDIR` 再启动。
 
 ## 4. 安装 Zsh 插件
 
@@ -226,6 +227,7 @@ chsh -s "$(command -v zsh)"
 ```sh
 bash -n scripts/install-config.sh
 bash -n scripts/install-neovim.sh
+bash -n scripts/install-zellij.sh
 python3 -B -m unittest discover -s tests -v
 ```
 

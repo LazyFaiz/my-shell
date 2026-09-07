@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
-# Install user configuration; --astronvim also installs latest stable Neovim from GitHub.
+# Install user configuration and optional latest stable Neovim/Zellij from GitHub.
 set -euo pipefail
 
 if [[ ${1:-} == --help ]]; then
-  printf '%s\n' 'Usage: bash scripts/install-config.sh [--astronvim] [--delta]' \
+  printf '%s\n' 'Usage: bash scripts/install-config.sh [--astronvim] [--zellij] [--delta]' \
     'Backs up and installs Zsh configuration for the current user.' \
     '--astronvim: install latest stable Neovim; add AstroNvim only when nvim config is absent.' \
+    '--zellij: install latest stable Zellij from GitHub.' \
     '--delta: configure Git to use delta, backing up existing Git config.'
   exit 0
 fi
 astro=0
 delta=0
+zellij=0
 for arg in "$@"; do
   case "$arg" in
     --astronvim) astro=1 ;;
     --delta) delta=1 ;;
+    --zellij) zellij=1 ;;
     *) printf 'Unknown option: %s\n' "$arg" >&2; exit 2 ;;
   esac
 done
@@ -38,6 +41,11 @@ if [[ -d "$config_dir" ]] && [[ $(cd "$config_dir" && pwd -P) == "$repo_dir/zsh"
 fi
 if (( astro )); then
   bash "$repo_dir/scripts/install-neovim.sh"
+  export PATH="$HOME/.local/bin:$PATH"
+  hash -r
+fi
+if (( zellij )); then
+  bash "$repo_dir/scripts/install-zellij.sh"
   export PATH="$HOME/.local/bin:$PATH"
   hash -r
 fi
