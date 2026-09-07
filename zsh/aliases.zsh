@@ -82,3 +82,22 @@ extract() {
     *) command "$extractor" x -aos "-o$destination" "$archive" ;;
   esac
 }
+
+# Follow Yazi's last directory on normal exit; Q leaves the cwd file empty.
+y() {
+  (( $+commands[yazi] )) || { print -u2 'Yazi is not installed; use --yazi.'; return 127; }
+  local tmp cwd exit_code=0
+  tmp=$(mktemp -t yazi-cwd.XXXXXXXX) || return
+  {
+    command yazi "$@" --cwd-file="$tmp" || exit_code=$?
+    if (( exit_code == 0 )); then
+      IFS= read -r -d '' cwd < "$tmp" || true
+      if [[ -n "$cwd" && "$cwd" != "$PWD" && -d "$cwd" ]]; then
+        builtin cd -- "$cwd" || exit_code=$?
+      fi
+    fi
+  } always {
+    command rm -f -- "$tmp"
+  }
+  return "$exit_code"
+}

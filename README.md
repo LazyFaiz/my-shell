@@ -14,7 +14,7 @@
 
 ## 完整安装
 
-查看 [多系统安装指南](docs/install.md)，覆盖 Debian、Ubuntu、Arch Linux、Fedora 和 macOS，包含 btop、jq、tealdeer、git-delta、AstroNvim、Zellij 及 Zsh 插件。共用配置脚本会备份已有设置；`--astronvim` / `--zellij` 会从 GitHub 安装 Neovim / Zellij 最新稳定版，不安装 Go。
+查看 [多系统安装指南](docs/install.md)，覆盖 Debian、Ubuntu、Arch Linux、Fedora 和 macOS，包含 btop、jq、tealdeer、git-delta、AstroNvim、Zellij、Yazi 及 Zsh 插件。共用配置脚本会备份已有设置；`--astronvim` / `--zellij` / `--yazi` 会从 GitHub 安装 Neovim / Zellij / Yazi 最新稳定版，不安装 Go。
 
 ## 快速试用
 
@@ -47,6 +47,7 @@ exec zsh
 ├── scripts/install-config.sh # 用户配置安装脚本
 ├── scripts/install-neovim.sh # GitHub 最新稳定版 Neovim
 ├── scripts/install-zellij.sh # GitHub 最新稳定版 Zellij
+├── scripts/install-yazi.sh   # GitHub 最新稳定版 Yazi + ya
 └── zsh/
     ├── .zshenv           # 环境变量与 XDG 路径
     ├── .zshrc            # 主入口、历史与补全

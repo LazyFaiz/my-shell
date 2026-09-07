@@ -6,7 +6,7 @@
 
 ## 安装
 
-完整工具环境（AstroNvim、Zellij、btop、jq、tealdeer、git-delta）请按 [多系统安装指南](../docs/install.md) 操作。以下为仅复制 Zsh 配置的方式。
+完整工具环境（AstroNvim、Zellij、Yazi、btop、jq、tealdeer、git-delta）请按 [多系统安装指南](../docs/install.md) 操作。以下为仅复制 Zsh 配置的方式。
 
 至少需要 Zsh；安装插件还需要 Git。请先在目标系统安装这些依赖。可选增强工具为 `fzf`、`fd`、`bat`、`eza`、`zoxide`、`starship`、`neovim`、`ripgrep`。Ubuntu 的 `fdfind`、`batcat` 会自动识别。
 
@@ -100,6 +100,7 @@ ZDOTDIR="$PWD" zsh
 | `jqp 文件.json` | 格式化 JSON，也可接收管道输入 |
 | `ports` | Linux 显示 TCP/UDP 监听端口；macOS 回退为 TCP 监听端口 |
 | `disk` / `mem` | 磁盘 / 内存；macOS 内存输出使用 vm_stat |
+| `y [目录]` | 打开 Yazi，q 退出跟随目录；Q 退出保持原目录 |
 | `zj` | 打开 Zellij |
 | `za work` / `zl` | 创建或连接 work 会话 / 列出会话 |
 | `extract 文件` | 解压到文件旁的新 `.extracted` 目录 |

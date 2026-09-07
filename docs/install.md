@@ -12,7 +12,7 @@ Ubuntu 需启用 universe 仓库。先安装工具，Neovim、Zellij、Starship 
 
 ```bash
 sudo apt update
-sudo apt install -y zsh git curl ca-certificates btop jq tealdeer git-delta \
+sudo apt install -y zsh git curl ca-certificates file btop jq tealdeer git-delta \
   fzf fd-find bat eza zoxide ripgrep unzip 7zip tar gzip bzip2 xz-utils \
   build-essential
 ```
@@ -26,7 +26,7 @@ sudo apt install -y starship
 ### Arch Linux
 
 ```bash
-sudo pacman -Syu --needed zsh git curl ca-certificates btop jq tealdeer git-delta \
+sudo pacman -Syu --needed zsh git curl ca-certificates file btop jq tealdeer git-delta \
   fzf fd bat eza zoxide ripgrep unzip 7zip tar gzip bzip2 xz \
   base-devel neovim zellij starship
 ```
@@ -34,7 +34,7 @@ sudo pacman -Syu --needed zsh git curl ca-certificates btop jq tealdeer git-delt
 ### Fedora
 
 ```bash
-sudo dnf install -y zsh git curl ca-certificates btop jq tealdeer git-delta \
+sudo dnf install -y zsh git curl ca-certificates file btop jq tealdeer git-delta \
   fzf fd-find bat eza zoxide ripgrep unzip 7zip tar gzip bzip2 xz \
   gcc gcc-c++ make neovim zellij starship
 ```
@@ -44,7 +44,7 @@ sudo dnf install -y zsh git curl ca-certificates btop jq tealdeer git-delta \
 先安装 [Homebrew](https://brew.sh/)。编译器来自 Xcode Command Line Tools；没有时执行 `xcode-select --install` 并完成弹窗安装。
 
 ```bash
-brew install zsh git btop jq tealdeer git-delta fzf fd bat eza zoxide \
+brew install zsh git file btop jq tealdeer git-delta fzf fd bat eza zoxide \
   ripgrep unzip sevenzip neovim zellij starship
 ```
 
@@ -101,6 +101,34 @@ exec zsh
 
 然后使用 `zellij --version` 检查，`za work` 创建或连接会话。
 
+### Linux / macOS：自动安装 Yazi
+
+基础文件管理使用 `--yazi`，同时安装 GitHub 最新稳定版中的 `yazi` 和配套 `ya`。已有配置的服务器执行：
+
+```bash
+cd ~/my-shell
+git pull --ff-only
+bash scripts/install-config.sh --yazi
+exec zsh
+```
+
+单独安装程序可用 `bash scripts/install-yazi.sh`；需要 `curl`、`jq`、`unzip`、`file` 及 SHA-256 工具。Linux/macOS 均支持 x86_64/ARM64，下载后校验摘要并检查两个程序能否运行，然后备份原入口、安装至用户目录。配置和插件目录不被重写。
+
+```zsh
+yazi --version
+ya --version
+y          # 打开文件管理器，q 退出后跟随最后浏览的目录
+y ~/my-shell
+```
+
+`Q` 退出并保持 Shell 原目录。`yazi` 原命令仍可直接使用，但退出后不改变 Shell 目录。文件列表中 `.` 切换隐藏文件，`Enter` 打开，`r` 重命名，`y` 复制、`p` 粘贴；`F1` 查看帮助。这里的 Yazi 内部 `y` 按键和 Shell 的 `y` 函数是不同操作。
+
+基础功能复用现有 jq、fd、ripgrep、fzf、zoxide 和 7-Zip。Debian/Ubuntu 只有 `fdfind` 时，安装器会在没有现有 `fd` 入口的情况下创建 `~/.local/bin/fd` 软链接，因为 Yazi 不能使用 Zsh 的 alias。Yazi 的 fzf 导航需要 fzf >= 0.53；旧版本不会阻止基础文件浏览。
+
+本次不自动安装多媒体预览依赖：视频缩略图可加 ffmpeg，PDF 预览可加 Poppler，SVG 可加 resvg。图片显示和剪贴板能力取决于本地终端与 Zellij/SSH 的支持，不是安装 Yazi 后所有终端都能直接显示图片。
+
+程序位于 `~/.local/opt/yazi-版本-随机目录/`，旧 `yazi` / `ya` 入口备份在 `~/.local/opt/yazi-entry-backup-*/`。重新安装后执行 `exec zsh` 即可启用 `y`。自定义设置按 Yazi 官方文档放在 `~/.config/yazi/`。
+
 ### Linux：安装 Starship（软件源没有时）
 
 ```bash
@@ -130,16 +158,17 @@ starship --version
 ```bash
 git clone https://github.com/LazyFaiz/my-shell.git ~/my-shell
 cd ~/my-shell
-bash scripts/install-config.sh --astronvim --zellij --delta
+bash scripts/install-config.sh --astronvim --zellij --yazi --delta
 ```
 
 已有仓库时进入原目录执行 `git pull --ff-only`，不必重新克隆。
 
-脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` / `--zellij` 时额外从 GitHub 安装对应工具的最新稳定版到用户目录。它会：
+脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` / `--zellij` / `--yazi` 时额外从 GitHub 安装对应工具的最新稳定版到用户目录。它会：
 
 - 备份旧 Zsh 配置、入口文件；更新模块时保留 `local.zsh`。
 - 在 `~/.zshenv` 追加一次配置入口，保留原文件内容。
 - 使用 `--zellij` 时安装 GitHub 最新稳定版 Zellij，备份旧入口；原配置与会话不变。
+- 使用 `--yazi` 时安装最新稳定版 Yazi 和 ya，保留已有 Yazi 设置。
 - 使用 `--delta` 时备份 Git 配置，再启用彩色 diff、行号、差异导航；不改 Git 用户名和邮箱。
 - 使用 `--astronvim` 时安装最新稳定版 Neovim，再克隆官方 AstroNvim 模板；已有 Neovim 配置会保留，但 Neovim 程序仍会更新。
 - 首次安装 AstroNvim 时，将原有 Neovim data/state/cache 目录移到同级 `.bak.时间戳` 目录。
@@ -220,6 +249,9 @@ chsh -s "$(command -v zsh)"
 - [Starship 安装](https://starship.rs/guide/)
 - [delta 配置](https://dandavison.github.io/delta/get-started.html)
 
+- [Yazi 安装](https://yazi-rs.github.io/docs/installation/)
+- [Yazi 目录跟随与快捷键](https://yazi-rs.github.io/docs/quick-start/)
+
 ## 安装器验证
 
 在已安装 Bash、Python 3、jq、tar 和 SHA-256 工具的 Linux/macOS 上执行：
@@ -228,6 +260,7 @@ chsh -s "$(command -v zsh)"
 bash -n scripts/install-config.sh
 bash -n scripts/install-neovim.sh
 bash -n scripts/install-zellij.sh
+bash -n scripts/install-yazi.sh
 python3 -B -m unittest discover -s tests -v
 ```
 
