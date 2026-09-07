@@ -38,6 +38,7 @@ exec zsh
 ```text
 .
 ├── README.md
+├── LICENSE               # MIT 许可（保留上游版权声明）
 └── zsh/
     ├── .zshenv           # 环境变量与 XDG 路径
     ├── .zshrc            # 主入口、历史与补全
@@ -48,11 +49,10 @@ exec zsh
     ├── prompt.zsh        # Starship 初始化及回退提示符
     ├── starship.toml     # Pastel Powerline 主题
     ├── local.zsh.example # 机器专属配置示例
-    ├── LICENSE           # 上游 MIT 许可
     └── README.md         # 详细使用说明
 ```
 
 ## 参考与许可
 
-- Zsh 配置参考 [radleylewis/zsh](https://github.com/radleylewis/zsh)，保留其 [MIT 许可](zsh/LICENSE)。
+- Zsh 配置参考 [radleylewis/zsh](https://github.com/radleylewis/zsh)，保留其 [MIT 许可](LICENSE)。
 - Starship 主题使用官方 [Pastel Powerline Preset](https://starship.rs/presets/pastel-powerline)。

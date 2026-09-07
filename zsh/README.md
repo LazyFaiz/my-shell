@@ -1,6 +1,6 @@
 # Zsh 配置
 
-参考 [radleylewis/zsh](https://github.com/radleylewis/zsh) 的模块划分与功能设计，保留上游 MIT 许可。适用于 Linux、macOS、WSL 中的 Zsh，不适用于直接在 PowerShell 中加载。
+参考 [radleylewis/zsh](https://github.com/radleylewis/zsh) 的模块划分与功能设计，保留上游 [MIT 许可](../LICENSE)。适用于 Linux、macOS、WSL 中的 Zsh，不适用于直接在 PowerShell 中加载。
 
 包含历史记录共享、大小写不敏感补全、Vi 模式、自动建议、历史子串搜索、语法高亮，以及可选的 fzf、zoxide 和 Starship。没有安装增强工具时仍可使用基础配置。插件改为手动安装，启动终端不会自动下载。
 
@@ -18,7 +18,7 @@ cd /mnt/f/Desktop/product/shell/zsh
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/zsh"
 mkdir -p "$config_dir"
 cp -i .zshenv .zshrc aliases.zsh bindings.zsh fzf.zsh plugins.zsh \
-  prompt.zsh starship.toml local.zsh.example LICENSE "$config_dir/"
+  prompt.zsh starship.toml local.zsh.example ../LICENSE "$config_dir/"
 ```
 
 Linux/macOS 请将 `cd` 路径替换为实际目录。接下来，在 `~/.zshenv` **末尾添加一次**以下内容；已有文件请保留原内容。无需修改 `/etc/zsh/zshenv`：
