@@ -105,3 +105,14 @@ ZDOTDIR="$PWD" zsh
 | `extract 文件` | 解压到文件旁的新 `.extracted` 目录 |
 
 可选工具未安装时不会定义相应别名。`extract` 支持 tar、tar.gz、tar.bz2、tar.xz、zip、7z、rar；RAR 支持取决于安装的 7-Zip 构建。`c` 仍用于 bat 查看文件，不表示清屏。delta 通过安装脚本的 `--delta` 选项配置 Git 后生效。
+
+## 修复旧版本的 fzf 预览报错
+
+旧版本将 fzf 的 `{}` 占位符放在 Zsh 的默认值参数展开内部，会生成不完整的预览命令，出现 `parse error near '}'`。更新配置后，旧终端可能仍继承错误的环境变量，请执行：
+
+```zsh
+unset FZF_CTRL_T_OPTS
+exec zsh
+```
+
+如果在 `local.zsh` 中自定义预览选项，也请检查该设置。新版保留已有的自定义选项，不会自动覆盖。

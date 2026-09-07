@@ -9,10 +9,14 @@ else
 fi
 export FZF_CTRL_T_COMMAND="${FZF_CTRL_T_COMMAND:-$FZF_DEFAULT_COMMAND}"
 export FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS:---height=60% --layout=reverse --border=rounded}"
-if (( $+commands[bat] )); then
-  export FZF_CTRL_T_OPTS="${FZF_CTRL_T_OPTS:---preview 'bat --color=always --style=numbers --line-range=:300 -- {}'}"
-elif (( $+commands[batcat] )); then
-  export FZF_CTRL_T_OPTS="${FZF_CTRL_T_OPTS:---preview 'batcat --color=always --style=numbers --line-range=:300 -- {}'}"
+# Keep fzf's {} placeholder outside ${...:-...}: Zsh otherwise closes the
+# parameter expansion at its }, producing an invalid preview shell command.
+if [[ -z "${FZF_CTRL_T_OPTS:-}" ]]; then
+  if (( $+commands[bat] )); then
+    export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:300 -- {}'"
+  elif (( $+commands[batcat] )); then
+    export FZF_CTRL_T_OPTS="--preview 'batcat --color=always --style=numbers --line-range=:300 -- {}'"
+  fi
 fi
 
 _zsh_fzf_init() {
