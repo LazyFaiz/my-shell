@@ -14,13 +14,13 @@ Ubuntu 需启用 universe 仓库。先安装工具，Neovim、Zellij、Starship 
 sudo apt update
 sudo apt install -y zsh git curl ca-certificates file btop jq tealdeer git-delta \
   fzf fd-find bat eza zoxide ripgrep unzip 7zip tar gzip bzip2 xz-utils \
-  build-essential
+  build-essential ffmpeg poppler-utils
 ```
 
-Debian 13 可直接安装 Starship：
+Debian 13 可直接安装 Starship 和 SVG 预览工具：
 
 ```bash
-sudo apt install -y starship
+sudo apt install -y starship resvg
 ```
 
 ### Arch Linux
@@ -28,7 +28,7 @@ sudo apt install -y starship
 ```bash
 sudo pacman -Syu --needed zsh git curl ca-certificates file btop jq tealdeer git-delta \
   fzf fd bat eza zoxide ripgrep unzip 7zip tar gzip bzip2 xz \
-  base-devel neovim zellij starship
+  base-devel neovim zellij starship ffmpeg poppler resvg
 ```
 
 ### Fedora
@@ -36,7 +36,7 @@ sudo pacman -Syu --needed zsh git curl ca-certificates file btop jq tealdeer git
 ```bash
 sudo dnf install -y zsh git curl ca-certificates file btop jq tealdeer git-delta \
   fzf fd-find bat eza zoxide ripgrep unzip 7zip tar gzip bzip2 xz \
-  gcc gcc-c++ make neovim zellij starship
+  gcc gcc-c++ make neovim zellij starship ffmpeg-free poppler-utils
 ```
 
 ### macOS
@@ -45,7 +45,7 @@ sudo dnf install -y zsh git curl ca-certificates file btop jq tealdeer git-delta
 
 ```bash
 brew install zsh git file btop jq tealdeer git-delta fzf fd bat eza zoxide \
-  ripgrep unzip sevenzip neovim zellij starship
+  ripgrep unzip sevenzip neovim zellij starship ffmpeg poppler resvg
 ```
 
 ## 2. 检查 Neovim、Zellij、Starship
@@ -125,9 +125,64 @@ y ~/my-shell
 
 基础功能复用现有 jq、fd、ripgrep、fzf、zoxide 和 7-Zip。Debian/Ubuntu 只有 `fdfind` 时，安装器会在没有现有 `fd` 入口的情况下创建 `~/.local/bin/fd` 软链接，因为 Yazi 不能使用 Zsh 的 alias。Yazi 的 fzf 导航需要 fzf >= 0.53；旧版本不会阻止基础文件浏览。
 
-本次不自动安装多媒体预览依赖：视频缩略图可加 ffmpeg，PDF 预览可加 Poppler，SVG 可加 resvg。图片显示和剪贴板能力取决于本地终端与 Zellij/SSH 的支持，不是安装 Yazi 后所有终端都能直接显示图片。
+预览依赖的安装与已有服务器补装步骤见下节。图片显示和剪贴板能力取决于本地终端与 Zellij/SSH 的支持，不是安装 Yazi 后所有终端都能直接显示图片。
 
 程序位于 `~/.local/opt/yazi-版本-随机目录/`，旧 `yazi` / `ya` 入口备份在 `~/.local/opt/yazi-entry-backup-*/`。重新安装后执行 `exec zsh` 即可启用 `y`。自定义设置按 Yazi 官方文档放在 `~/.config/yazi/`。
+
+### 补齐 Yazi 预览依赖
+
+以下四类依赖由系统包管理器安装；`install-config.sh --yazi` 只安装 Yazi/ya 与用户配置，`shell-update all` 也不会代装系统软件包。已经装过的包无需卸载，重复运行安装命令即可补齐。
+
+| 功能 | 命令 | Debian / Ubuntu 软件包 | Arch / Homebrew 软件包 |
+| --- | --- | --- | --- |
+| 视频缩略图 | `ffmpeg` | `ffmpeg` | `ffmpeg` |
+| PDF 预览 | `pdftoppm` | `poppler-utils` | `poppler` |
+| SVG 预览 | `resvg` | `resvg`（取决于发行版软件源） | `resvg` |
+| 压缩包预览和解压 | `7zz` 或 `7z` | `7zip` | `7zip` / `sevenzip` |
+
+**已有 Debian 13 服务器（root）直接执行：**
+
+```bash
+apt update
+apt install -y ffmpeg poppler-utils resvg 7zip
+```
+
+普通用户在两条命令前加 `sudo`。其他系统选择对应命令：
+
+```bash
+# Ubuntu：先安装软件源中的三项，再检查 resvg 是否有候选版本
+sudo apt update
+sudo apt install -y ffmpeg poppler-utils 7zip
+apt-cache policy resvg
+# 有候选版本时执行：sudo apt install -y resvg
+
+# Arch Linux
+sudo pacman -Syu --needed ffmpeg poppler resvg 7zip
+
+# Fedora：官方源中的 ffmpeg-free 支持的编解码器少于完整 FFmpeg
+sudo dnf install -y ffmpeg-free poppler-utils 7zip
+dnf info resvg
+# 软件源提供时执行：sudo dnf install -y resvg
+
+# macOS（Homebrew）
+brew install ffmpeg poppler resvg sevenzip
+```
+
+Ubuntu/Fedora 软件源没有 `resvg` 时，从 [resvg 官方 Releases](https://github.com/linebender/resvg/releases) 选择与系统和 CPU 架构匹配的稳定版命令行程序，解压后将 `resvg` 放入 `~/.local/bin/` 并授予执行权限；不要安装其他发行版的包。也可在已有 Rust/Cargo 的环境执行 `cargo install resvg --locked`，随后把 `~/.cargo/bin` 加入 PATH。本仓库不自动安装 Rust 工具链。
+
+安装后在 Zsh 中检查：
+
+```zsh
+rehash
+ffmpeg -version | head -n 1
+pdftoppm -v
+resvg --version
+if command -v 7zz >/dev/null; then 7zz i; else 7z i; fi
+shell-doctor
+y
+```
+
+`7zz` 和 `7z` 有一个可用即可，不需要为了另一个 `absent` 重复安装。关闭并重新打开 Yazi，分别选中视频、PDF、SVG 和压缩包，确认实际预览。命令能运行不代表当前 SSH 客户端支持图片显示；压缩格式支持也取决于 7-Zip 的发行版构建。依赖用途参见 [Yazi 官方安装文档](https://yazi-rs.github.io/docs/installation/)。
 
 ### Linux：安装 Starship（软件源没有时）
 

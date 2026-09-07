@@ -16,6 +16,8 @@
 
 查看 [多系统安装指南](docs/install.md)，覆盖 Debian、Ubuntu、Arch Linux、Fedora 和 macOS，包含 btop、jq、tealdeer、git-delta、AstroNvim、Zellij、Yazi 及 Zsh 插件。共用配置脚本会备份已有设置；`--astronvim` / `--zellij` / `--yazi` 会从 GitHub 安装 Neovim / Zellij / Yazi 最新稳定版，不安装 Go。
 
+Yazi 视频、PDF、SVG 和压缩包预览依赖（ffmpeg、Poppler、resvg、7-Zip）的多系统安装及服务器补装命令见 [预览依赖](docs/install.md#补齐-yazi-预览依赖)。这些依赖使用系统包管理器安装。
+
 ## 检查与更新
 
 加载新配置后使用 shell-doctor 检查当前会话；shell-update config、shell-update plugins、shell-update tools 分别更新配置、插件和已安装工具。shell-update all 按顺序更新，工具版本一致时跳过安装包下载。详见 [维护与恢复指南](docs/maintenance.md)。GitHub Actions 会在提交推送和 PR 时运行 Linux/macOS 检查。

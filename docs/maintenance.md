@@ -29,6 +29,8 @@ shell-doctor
 
 插件“已加载”指当前配置加载时成功 source；它不会为了检查而重新启动或下载插件。`exec zsh` 后再运行可确认新配置的状态。
 
+预览工具显示 `absent` 时，按 [补齐 Yazi 预览依赖](install.md#补齐-yazi-预览依赖) 安装 ffmpeg、Poppler、resvg 和 7-Zip。`7zz` / `7z` 有一个可用即可；安装后执行 `rehash`、`shell-doctor`，并重新打开 Yazi 检查实际预览。系统依赖由原包管理器更新。
+
 ## 分类更新
 
 ```zsh
