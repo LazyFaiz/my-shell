@@ -60,33 +60,23 @@ AstroNvim 当前要求 **Neovim 0.11 或以上的稳定版本**、C 编译器和
 
 Linux 缺少这些工具时，使用下列官方来源的安装步骤。已有满足要求的版本可以跳过。macOS 使用上面的 Homebrew 命令。
 
-### Linux：安装新版 Neovim
+### Linux / macOS：GitHub 最新稳定版 Neovim
 
-此命令支持 x86_64 / ARM64，下载官方最新稳定版本，安装到当前用户目录。每次安装使用独立目录，旧二进制入口会备份。
+使用 `--astronvim` 时，配置脚本会自动调用 `scripts/install-neovim.sh`，无需先手动升级。无论原版本是 0.10、较新稳定版还是未安装，都会查询 GitHub Releases 的 `/latest`，排除 nightly 和预发布，并下载此次查询得到的确切版本。
+
+也可在克隆本仓库后单独运行：
 
 ```bash
-bash <<'BASH'
-set -euo pipefail
-case "$(uname -m)" in
-  x86_64) platform=x86_64 ;;
-  aarch64|arm64) platform=arm64 ;;
-  *) echo '此步骤仅支持 Linux x86_64 / ARM64'; exit 1 ;;
-esac
-work=$(mktemp -d)
-trap 'rm -rf -- "$work"' EXIT
-asset="nvim-linux-$platform"
-curl -fL --retry 3 "https://github.com/neovim/neovim/releases/latest/download/$asset.tar.gz" -o "$work/nvim.tar.gz"
-tar -xzf "$work/nvim.tar.gz" -C "$work"
-mkdir -p "$HOME/.local/opt" "$HOME/.local/bin"
-target=$(mktemp -d "$HOME/.local/opt/nvim-XXXXXXXX")
-cp -a "$work/$asset/." "$target/"
-"$target/bin/nvim" --version
-if [ -e "$HOME/.local/bin/nvim" ] || [ -L "$HOME/.local/bin/nvim" ]; then
-  mv "$HOME/.local/bin/nvim" "$HOME/.local/bin/nvim.bak.$(date +%Y%m%d-%H%M%S).$$"
-fi
-ln -s "$target/bin/nvim" "$HOME/.local/bin/nvim"
-BASH
+cd ~/my-shell
+bash scripts/install-neovim.sh
+export PATH="$HOME/.local/bin:$PATH"
 ```
+
+脚本需要 `curl`、`jq`、`tar` 和 `sha256sum` 或 `shasum`（上面的依赖命令及系统基础工具已覆盖）。支持 Linux/macOS 的 x86_64、ARM64；macOS 按当前进程架构选择，Apple Silicon 请优先使用原生终端。
+
+下载文件必须与 GitHub API 提供的 SHA-256 摘要一致，并通过 Neovim 无配置启动检查，之后才切换 `~/.local/bin/nvim`。程序安装到 `~/.local/opt/nvim-版本-随机目录/`；原有用户命令入口会备份，apt/Homebrew 安装不被卸载。失败会退出，不会继续安装 AstroNvim。较旧系统若不兼容最新二进制，需要先升级系统。
+
+重复执行会重新下载安装当时的最新稳定版。当前终端需要执行 `rehash`（Zsh）或 `hash -r`（Bash），或重新打开 Zsh，然后用 `command -v nvim` 和 `nvim --version` 确认。
 
 ### Linux：安装 Zellij
 
@@ -145,12 +135,12 @@ bash scripts/install-config.sh --astronvim --delta
 
 已有仓库时进入原目录执行 `git pull --ff-only`，不必重新克隆。
 
-脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git、Neovim 和 delta，不安装系统软件。它会：
+脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` 时额外从 GitHub 安装最新稳定版 Neovim 到用户目录。它会：
 
 - 备份旧 Zsh 配置、入口文件；更新模块时保留 `local.zsh`。
 - 在 `~/.zshenv` 追加一次配置入口，保留原文件内容。
 - 使用 `--delta` 时备份 Git 配置，再启用彩色 diff、行号、差异导航；不改 Git 用户名和邮箱。
-- 使用 `--astronvim` 时检查 Neovim 版本，克隆官方 AstroNvim 模板；已有 Neovim 配置则跳过。
+- 使用 `--astronvim` 时安装最新稳定版 Neovim，再克隆官方 AstroNvim 模板；已有 Neovim 配置会保留，但 Neovim 程序仍会更新。
 - 首次安装 AstroNvim 时，将原有 Neovim data/state/cache 目录移到同级 `.bak.时间戳` 目录。
 
 省略两个选项只安装 Zsh 配置。备份位置会在完成后打印，默认在 `~/.local/state/my-shell/backups/`。如果以前设置过自定义 `ZDOTDIR`，需确保 Zsh 实际读取的 `.zshenv` 也包含这里的入口，或先取消旧 `ZDOTDIR` 再启动。
@@ -228,3 +218,15 @@ chsh -s "$(command -v zsh)"
 - [Zellij 安装](https://zellij.dev/documentation/installation)
 - [Starship 安装](https://starship.rs/guide/)
 - [delta 配置](https://dandavison.github.io/delta/get-started.html)
+
+## 安装器验证
+
+在已安装 Bash、Python 3、jq、tar 和 SHA-256 工具的 Linux/macOS 上执行：
+
+```sh
+bash -n scripts/install-config.sh
+bash -n scripts/install-neovim.sh
+python3 -B -m unittest discover -s tests -v
+```
+
+测试使用隔离 HOME、模拟发布信息和下载文件，覆盖四种系统/架构映射、旧入口备份、重复安装、预发布拒绝、校验失败、下载失败及二进制启动失败。它验证安装逻辑，不代替真实 macOS/Linux 二进制与系统兼容性测试。

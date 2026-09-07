@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Install user configuration only; install system dependencies using docs/install.md.
+# Install user configuration; --astronvim also installs latest stable Neovim from GitHub.
 set -euo pipefail
 
 if [[ ${1:-} == --help ]]; then
   printf '%s\n' 'Usage: bash scripts/install-config.sh [--astronvim] [--delta]' \
     'Backs up and installs Zsh configuration for the current user.' \
-    '--astronvim: install the AstroNvim template only when nvim config is absent.' \
+    '--astronvim: install latest stable Neovim; add AstroNvim only when nvim config is absent.' \
     '--delta: configure Git to use delta, backing up existing Git config.'
   exit 0
 fi
@@ -24,10 +24,6 @@ done
 if (( delta )); then
   command -v delta >/dev/null || { echo 'Install git-delta first.' >&2; exit 1; }
 fi
-if (( astro )); then
-  command -v nvim >/dev/null || { echo 'Install Neovim >= 0.11 first.' >&2; exit 1; }
-  nvim --clean --headless '+lua if vim.fn.has("nvim-0.11") == 0 then vim.cmd("cquit") end' +qa
-fi
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
@@ -39,6 +35,11 @@ mkdir -p "$XDG_CONFIG_HOME" "$XDG_STATE_HOME/my-shell/backups"
 if [[ -d "$config_dir" ]] && [[ $(cd "$config_dir" && pwd -P) == "$repo_dir/zsh" ]]; then
   echo 'Source and destination are identical; clone the repository elsewhere.' >&2
   exit 1
+fi
+if (( astro )); then
+  bash "$repo_dir/scripts/install-neovim.sh"
+  export PATH="$HOME/.local/bin:$PATH"
+  hash -r
 fi
 backup_dir=$(mktemp -d "$XDG_STATE_HOME/my-shell/backups/install-XXXXXXXX")
 backup() {

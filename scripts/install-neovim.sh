@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Install the latest stable GitHub release without replacing system packages.
+set -euo pipefail
+if [[ ${1:-} == --help ]]; then
+  echo 'Usage: bash scripts/install-neovim.sh'
+  echo 'Install latest stable Neovim from GitHub for Linux/macOS x86_64/ARM64.'
+  exit 0
+fi
+[[ $# == 0 ]] || { echo 'Unknown argument.' >&2; exit 2; }
+for cmd in curl jq tar; do
+  command -v "$cmd" >/dev/null || { echo "Missing dependency: $cmd" >&2; exit 1; }
+done
+case "$(uname -s)" in
+  Linux) system=linux ;;
+  Darwin) system=macos ;;
+  *) echo 'Supported systems: Linux and macOS.' >&2; exit 1 ;;
+esac
+case "$(uname -m)" in
+  x86_64|amd64) arch=x86_64 ;;
+  aarch64|arm64) arch=arm64 ;;
+  *) echo 'Supported architectures: x86_64 and ARM64.' >&2; exit 1 ;;
+esac
+if command -v sha256sum >/dev/null; then
+  checksum() { sha256sum "$1"; }
+elif command -v shasum >/dev/null; then
+  checksum() { shasum -a 256 "$1"; }
+else
+  echo 'Missing SHA-256 tool (sha256sum or shasum).' >&2; exit 1
+fi
+work=$(mktemp -d)
+trap 'rm -rf -- "$work"' EXIT
+curl -fsSL --retry 3 --connect-timeout 15 --max-time 120 \
+  https://api.github.com/repos/neovim/neovim/releases/latest -o "$work/release.json"
+jq -e '.draft == false and .prerelease == false' "$work/release.json" >/dev/null
+version=$(jq -er '.tag_name' "$work/release.json")
+[[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Unexpected stable release tag.' >&2; exit 1; }
+asset="nvim-$system-$arch"
+url=$(jq -er --arg name "$asset.tar.gz" '.assets[] | select(.name == $name) | .browser_download_url' "$work/release.json")
+digest=$(jq -er --arg name "$asset.tar.gz" '.assets[] | select(.name == $name) | .digest' "$work/release.json")
+[[ "$url" == "https://github.com/neovim/neovim/releases/download/$version/$asset.tar.gz" ]] || { echo 'Unexpected release URL.' >&2; exit 1; }
+[[ "$digest" =~ ^sha256:[a-fA-F0-9]{64}$ ]] || { echo 'Release has no valid SHA-256 digest.' >&2; exit 1; }
+echo "Downloading Neovim $version ($system/$arch)..."
+curl -fL --retry 3 --connect-timeout 15 --max-time 600 "$url" -o "$work/nvim.tar.gz"
+actual=$(checksum "$work/nvim.tar.gz")
+[[ "${actual%% *}" == "${digest#sha256:}" ]] || { echo 'SHA-256 mismatch; installation stopped.' >&2; exit 1; }
+tar -xzf "$work/nvim.tar.gz" -C "$work"
+# Verify the downloaded binary before changing the active command.
+"$work/$asset/bin/nvim" --clean --headless \
+  '+lua if vim.fn.has("nvim-0.11") == 0 then vim.cmd("cquit") end' +qa
+mkdir -p "$HOME/.local/opt" "$HOME/.local/bin"
+target=$(mktemp -d "$HOME/.local/opt/nvim-$version-XXXXXXXX")
+cp -a "$work/$asset/." "$target/"
+"$target/bin/nvim" --version
+entry="$HOME/.local/bin/nvim"
+# Do not accidentally move an entire directory at the command path.
+[[ ! -d "$entry" ]] || { echo "$entry is a directory; refusing to replace it." >&2; exit 1; }
+if [[ -e "$entry" || -L "$entry" ]]; then
+  backup_dir=$(mktemp -d "$HOME/.local/opt/nvim-entry-backup-XXXXXXXX")
+  cp -a "$entry" "$backup_dir/nvim"
+  echo "Previous command backed up: $backup_dir/nvim"
+fi
+# Stage the link on the same filesystem, then replace only the command entry.
+stage=$(mktemp -d "$HOME/.local/bin/.nvim-link-XXXXXXXX")
+ln -s "$target/bin/nvim" "$stage/nvim"
+mv -f "$stage/nvim" "$entry"
+rmdir "$stage"
+printf 'Installed %s at %s\n' "$version" "$target"
+echo 'In your current shell: export PATH="$HOME/.local/bin:$PATH"; rehash (Zsh) or hash -r (Bash).'
