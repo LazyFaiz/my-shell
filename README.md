@@ -16,6 +16,10 @@
 
 查看 [多系统安装指南](docs/install.md)，覆盖 Debian、Ubuntu、Arch Linux、Fedora 和 macOS，包含 btop、jq、tealdeer、git-delta、AstroNvim、Zellij、Yazi 及 Zsh 插件。共用配置脚本会备份已有设置；`--astronvim` / `--zellij` / `--yazi` 会从 GitHub 安装 Neovim / Zellij / Yazi 最新稳定版，不安装 Go。
 
+## 检查与更新
+
+加载新配置后使用 shell-doctor 检查当前会话；shell-update config、shell-update plugins、shell-update tools 分别更新配置、插件和已安装工具。shell-update all 按顺序更新，工具版本一致时跳过安装包下载。详见 [维护与恢复指南](docs/maintenance.md)。GitHub Actions 会在提交推送和 PR 时运行 Linux/macOS 检查。
+
 ## 快速试用
 
 先在目标系统安装 Zsh 和 Git，然后在 Bash 或 Zsh 中执行：
@@ -44,6 +48,7 @@ exec zsh
 ├── README.md
 ├── LICENSE               # MIT 许可（保留上游版权声明）
 ├── docs/install.md       # 多系统依赖、安装与恢复说明
+├── docs/maintenance.md   # 检查、分类更新与故障恢复
 ├── scripts/install-config.sh # 用户配置安装脚本
 ├── scripts/install-neovim.sh # GitHub 最新稳定版 Neovim
 ├── scripts/install-zellij.sh # GitHub 最新稳定版 Zellij
@@ -55,6 +60,7 @@ exec zsh
     ├── bindings.zsh      # 按键绑定
     ├── fzf.zsh           # 模糊搜索
     ├── plugins.zsh       # 插件安装、更新与加载
+    ├── maintenance.zsh   # shell-doctor / shell-update
     ├── prompt.zsh        # Starship 初始化及回退提示符
     ├── starship.toml     # Pastel Powerline 主题
     ├── local.zsh.example # 机器专属配置示例

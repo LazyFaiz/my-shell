@@ -19,7 +19,7 @@ Starship 使用官方 [Pastel Powerline Preset](https://starship.rs/presets/past
 cd ~/my-shell/zsh
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/zsh"
 mkdir -p "$config_dir"
-cp -i .zshenv .zshrc aliases.zsh bindings.zsh fzf.zsh plugins.zsh \
+cp -i .zshenv .zshrc aliases.zsh bindings.zsh fzf.zsh plugins.zsh maintenance.zsh \
   prompt.zsh starship.toml local.zsh.example ../LICENSE "$config_dir/"
 ```
 
@@ -66,6 +66,7 @@ Ctrl+T / Ctrl+R 的 fzf 集成需要支持 `fzf --zsh` 的版本，或系统包�
 | `bindings.zsh` | Vi 模式及快捷键 |
 | `fzf.zsh` | 模糊搜索与预览 |
 | `plugins.zsh` | 插件安装、更新及加载 |
+| `maintenance.zsh` | 当前会话诊断与分类更新 |
 | `prompt.zsh` / `starship.toml` | 提示符及主题 |
 | `local.zsh.example` | 私有设置示例，复制为 `local.zsh` 使用 |
 
@@ -117,3 +118,7 @@ exec zsh
 ```
 
 如果在 `local.zsh` 中自定义预览选项，也请检查该设置。新版保留已有的自定义选项，不会自动覆盖。
+
+## 日常维护
+
+使用 `shell-doctor` 检查版本、PATH、插件加载和预览依赖。使用 `shell-update config`、`shell-update plugins`、`shell-update tools` 分类更新，或 `shell-update all` 顺序执行。具体恢复步骤与测试说明见 [维护指南](../docs/maintenance.md)。手动复制配置的用户需要在 `local.zsh` 中设置 `MY_SHELL_REPO`，或运行一次 `install-config.sh` 记录仓库位置。

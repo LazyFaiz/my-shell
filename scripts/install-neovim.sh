@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Install the latest stable GitHub release without replacing system packages.
 set -euo pipefail
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib/install-common.sh"
 if [[ ${1:-} == --help ]]; then
   echo 'Usage: bash scripts/install-neovim.sh'
   echo 'Install latest stable Neovim from GitHub for Linux/macOS x86_64/ARM64.'
@@ -28,22 +29,30 @@ else
   echo 'Missing SHA-256 tool (sha256sum or shasum).' >&2; exit 1
 fi
 work=$(mktemp -d)
-trap 'rm -rf -- "$work"' EXIT
+INSTALL_STEP=release-metadata
 curl -fsSL --retry 3 --connect-timeout 15 --max-time 120 \
   https://api.github.com/repos/neovim/neovim/releases/latest -o "$work/release.json"
 jq -e '.draft == false and .prerelease == false' "$work/release.json" >/dev/null
 version=$(jq -er '.tag_name' "$work/release.json")
 [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Unexpected stable release tag.' >&2; exit 1; }
 asset="nvim-$system-$arch"
+if release_is_current "$version" "$asset" nvim; then
+  echo "Already current: $version ($asset); archive download skipped."
+  exit 0
+fi
 url=$(jq -er --arg name "$asset.tar.gz" '.assets[] | select(.name == $name) | .browser_download_url' "$work/release.json")
 digest=$(jq -er --arg name "$asset.tar.gz" '.assets[] | select(.name == $name) | .digest' "$work/release.json")
 [[ "$url" == "https://github.com/neovim/neovim/releases/download/$version/$asset.tar.gz" ]] || { echo 'Unexpected release URL.' >&2; exit 1; }
 [[ "$digest" =~ ^sha256:[a-fA-F0-9]{64}$ ]] || { echo 'Release has no valid SHA-256 digest.' >&2; exit 1; }
+INSTALL_STEP=archive-download
 echo "Downloading Neovim $version ($system/$arch)..."
 curl -fL --retry 3 --connect-timeout 15 --max-time 600 "$url" -o "$work/nvim.tar.gz"
+INSTALL_STEP=checksum
 actual=$(checksum "$work/nvim.tar.gz")
 [[ "${actual%% *}" == "${digest#sha256:}" ]] || { echo 'SHA-256 mismatch; installation stopped.' >&2; exit 1; }
+INSTALL_STEP=extract-archive
 tar -xzf "$work/nvim.tar.gz" -C "$work"
+INSTALL_STEP=verify-binary
 # Verify the downloaded binary before changing the active command.
 "$work/$asset/bin/nvim" --clean --headless \
   '+lua if vim.fn.has("nvim-0.11") == 0 then vim.cmd("cquit") end' +qa
@@ -51,6 +60,8 @@ mkdir -p "$HOME/.local/opt" "$HOME/.local/bin"
 target=$(mktemp -d "$HOME/.local/opt/nvim-$version-XXXXXXXX")
 cp -a "$work/$asset/." "$target/"
 "$target/bin/nvim" --version
+printf '%s %s\n' "$version" "$asset" > "$target/.my-shell-release"
+INSTALL_STEP=activate-entry
 entry="$HOME/.local/bin/nvim"
 # Do not accidentally move an entire directory at the command path.
 [[ ! -d "$entry" ]] || { echo "$entry is a directory; refusing to replace it." >&2; exit 1; }

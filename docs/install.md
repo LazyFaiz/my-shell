@@ -76,7 +76,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 下载文件必须与 GitHub API 提供的 SHA-256 摘要一致，并通过 Neovim 无配置启动检查，之后才切换 `~/.local/bin/nvim`。程序安装到 `~/.local/opt/nvim-版本-随机目录/`；原有用户命令入口会备份，apt/Homebrew 安装不被卸载。失败会退出，不会继续安装 AstroNvim。较旧系统若不兼容最新二进制，需要先升级系统。
 
-重复执行会重新下载安装当时的最新稳定版。当前终端需要执行 `rehash`（Zsh）或 `hash -r`（Bash），或重新打开 Zsh，然后用 `command -v nvim` 和 `nvim --version` 确认。
+重复执行会查询最新稳定版；安装标记与实际版本一致时跳过安装包下载。当前终端需要执行 `rehash`（Zsh）或 `hash -r`（Bash），或重新打开 Zsh，然后用 `command -v nvim` 和 `nvim --version` 确认。
 
 ### Linux / macOS：自动安装 Zellij
 
@@ -88,7 +88,7 @@ bash scripts/install-zellij.sh
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-支持 Linux/macOS 的 x86_64、ARM64，依赖 `curl`、`jq`、`tar` 和 SHA-256 工具。下载后校验 GitHub 发布摘要，并运行 `zellij --version`，成功后才切换 `~/.local/bin/zellij`。旧入口备份在 `~/.local/opt/zellij-entry-backup-*/`，版本程序位于 `~/.local/opt/zellij-版本-随机目录/`。重复执行会重新下载安装最新稳定版，不改 Zellij 配置，不自动创建或启动会话。
+支持 Linux/macOS 的 x86_64、ARM64，依赖 `curl`、`jq`、`tar` 和 SHA-256 工具。下载后校验 GitHub 发布摘要，并运行 `zellij --version`，成功后才切换 `~/.local/bin/zellij`。旧入口备份在 `~/.local/opt/zellij-entry-backup-*/`，版本程序位于 `~/.local/opt/zellij-版本-随机目录/`。重复执行会检查最新版，版本一致时跳过下载，不改 Zellij 配置，不自动创建或启动会话。
 
 已有 Zsh 配置的服务器，可以直接更新并执行：
 
@@ -265,3 +265,5 @@ python3 -B -m unittest discover -s tests -v
 ```
 
 测试使用隔离 HOME、模拟发布信息和下载文件，覆盖四种系统/架构映射、旧入口备份、重复安装、预发布拒绝、校验失败、下载失败及二进制启动失败。它验证安装逻辑，不代替真实 macOS/Linux 二进制与系统兼容性测试。
+
+完整的环境检查、分类更新、版本跳过和故障恢复流程见 [维护与恢复指南](maintenance.md)。

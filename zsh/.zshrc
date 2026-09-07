@@ -31,4 +31,5 @@ _zsh_apply_bindings
 
 (( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
 source "$ZSH_CONFIG_DIR/prompt.zsh"
+source "$ZSH_CONFIG_DIR/maintenance.zsh"
 [[ ! -f "$ZSH_CONFIG_DIR/local.zsh" ]] || source "$ZSH_CONFIG_DIR/local.zsh"

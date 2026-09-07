@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Install user configuration and optional latest stable Neovim/Zellij/Yazi from GitHub.
 set -euo pipefail
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib/install-common.sh"
 
 if [[ ${1:-} == --help ]]; then
   printf '%s\n' 'Usage: bash scripts/install-config.sh [--astronvim] [--zellij] [--yazi] [--delta]' \
@@ -43,20 +44,24 @@ if [[ -d "$config_dir" ]] && [[ $(cd "$config_dir" && pwd -P) == "$repo_dir/zsh"
   exit 1
 fi
 if (( astro )); then
+  INSTALL_STEP=install-neovim
   bash "$repo_dir/scripts/install-neovim.sh"
   export PATH="$HOME/.local/bin:$PATH"
   hash -r
 fi
 if (( zellij )); then
+  INSTALL_STEP=install-zellij
   bash "$repo_dir/scripts/install-zellij.sh"
   export PATH="$HOME/.local/bin:$PATH"
   hash -r
 fi
 if (( yazi )); then
+  INSTALL_STEP=install-yazi
   bash "$repo_dir/scripts/install-yazi.sh"
   export PATH="$HOME/.local/bin:$PATH"
   hash -r
 fi
+INSTALL_STEP=backup-config
 backup_dir=$(mktemp -d "$XDG_STATE_HOME/my-shell/backups/install-XXXXXXXX")
 backup() {
   if [[ -e "$1" || -L "$1" ]]; then
@@ -66,11 +71,13 @@ backup() {
 backup "$config_dir" zsh
 backup "$HOME/.zshenv" zshenv
 backup "$HOME/.zshrc" zshrc
+INSTALL_STEP=copy-config
 mkdir -p "$config_dir"
-for file in .zshenv .zshrc aliases.zsh bindings.zsh fzf.zsh plugins.zsh prompt.zsh starship.toml local.zsh.example; do
+for file in .zshenv .zshrc aliases.zsh bindings.zsh fzf.zsh plugins.zsh maintenance.zsh prompt.zsh starship.toml local.zsh.example; do
   cp "$repo_dir/zsh/$file" "$config_dir/$file"
 done
 cp "$repo_dir/LICENSE" "$config_dir/LICENSE"
+printf '%s\n' "$repo_dir" > "$config_dir/repository"
 # Append once; preserve all existing settings and local.zsh.
 if ! grep -Fqx '# BEGIN my-shell' "$HOME/.zshenv" 2>/dev/null; then
   cat >> "$HOME/.zshenv" <<'ZSHENV'
@@ -84,6 +91,7 @@ ZSHENV
 fi
 
 if (( delta )); then
+  INSTALL_STEP=configure-delta
   backup "${GIT_CONFIG_GLOBAL:-$HOME/.gitconfig}" gitconfig
   backup "$XDG_CONFIG_HOME/git/config" xdg-gitconfig
   git config --global core.pager delta
@@ -94,6 +102,7 @@ if (( delta )); then
 fi
 
 if (( astro )); then
+  INSTALL_STEP=astronvim-template
   if [[ -e "$XDG_CONFIG_HOME/nvim" || -L "$XDG_CONFIG_HOME/nvim" ]]; then
     echo 'Existing nvim configuration preserved; see docs/install.md to replace it.'
   else

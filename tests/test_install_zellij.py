@@ -33,6 +33,7 @@ import os, pathlib, shutil, sys
 args=sys.argv[1:]
 if os.environ.get('DOWNLOAD_FAIL'): sys.exit(22)
 url=next(x for x in args if x.startswith('https://'))
+if not url.endswith('/latest') and (pathlib.Path(os.environ['FIXTURE'])/'ARCHIVE_FORBIDDEN').exists(): sys.exit(99)
 source='release.json' if url.endswith('/latest') else 'archive.tar.gz'
 shutil.copyfile(pathlib.Path(os.environ['FIXTURE'])/source,args[args.index('-o')+1])
 ''')
@@ -122,6 +123,25 @@ shutil.copyfile(pathlib.Path(os.environ['FIXTURE'])/source,args[args.index('-o')
         self.assertTrue(self.entry.is_symlink())
         self.assertTrue((config / '.zshrc').is_file())
         self.assertEqual((config / 'local.zsh').read_text(), '# preserved\n')
+
+    def test_same_release_skips_archive_download(self):
+        self.fixture()
+        first = self.run_installer()
+        self.assertEqual(first.returncode, 0, first.stderr)
+        original = self.entry.resolve()
+        # Metadata remains readable, but any new archive request will fail.
+        (self.root / 'ARCHIVE_FORBIDDEN').touch()
+        second = self.run_installer()
+        self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertIn('archive download skipped', second.stdout)
+        self.assertEqual(self.entry.resolve(), original)
+
+    def test_error_reports_phase(self):
+        self.fixture(bad_digest=True)
+        result = self.run_installer()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('step=checksum', result.stderr)
+        self.assertIn('docs/maintenance.md', result.stderr)
 
 if __name__ == '__main__':
     unittest.main()

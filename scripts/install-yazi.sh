@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Install the latest stable GitHub release without replacing system packages.
 set -euo pipefail
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib/install-common.sh"
 if [[ ${1:-} == --help ]]; then
   echo 'Usage: bash scripts/install-yazi.sh'
   echo 'Install latest stable Yazi from GitHub for Linux/macOS x86_64/ARM64.'
@@ -28,22 +29,30 @@ else
   echo 'Missing SHA-256 tool (sha256sum or shasum).' >&2; exit 1
 fi
 work=$(mktemp -d)
-trap 'rm -rf -- "$work"' EXIT
+INSTALL_STEP=release-metadata
 curl -fsSL --retry 3 --connect-timeout 15 --max-time 120 \
   https://api.github.com/repos/sxyazi/yazi/releases/latest -o "$work/release.json"
 jq -e '.draft == false and .prerelease == false' "$work/release.json" >/dev/null
 version=$(jq -er '.tag_name' "$work/release.json")
 [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Unexpected stable release tag.' >&2; exit 1; }
 asset="yazi-$arch-$system"
+if release_is_current "$version" "$asset" yazi ya; then
+  echo "Already current: $version ($asset); archive download skipped."
+  exit 0
+fi
 url=$(jq -er --arg name "$asset.zip" '.assets[] | select(.name == $name) | .browser_download_url' "$work/release.json")
 digest=$(jq -er --arg name "$asset.zip" '.assets[] | select(.name == $name) | .digest' "$work/release.json")
 [[ "$url" == "https://github.com/sxyazi/yazi/releases/download/$version/$asset.zip" ]] || { echo 'Unexpected release URL.' >&2; exit 1; }
 [[ "$digest" =~ ^sha256:[a-fA-F0-9]{64}$ ]] || { echo 'Release has no valid SHA-256 digest.' >&2; exit 1; }
+INSTALL_STEP=archive-download
 echo "Downloading Yazi $version ($system/$arch)..."
 curl -fL --retry 3 --connect-timeout 15 --max-time 600 "$url" -o "$work/yazi.zip"
+INSTALL_STEP=checksum
 actual=$(checksum "$work/yazi.zip")
 [[ "${actual%% *}" == "${digest#sha256:}" ]] || { echo 'SHA-256 mismatch; installation stopped.' >&2; exit 1; }
+INSTALL_STEP=extract-archive
 unzip -q "$work/yazi.zip" -d "$work"
+INSTALL_STEP=verify-binary
 # Verify the downloaded binary before changing the active command.
 for binary in yazi ya; do
   "$work/$asset/$binary" --version
@@ -55,6 +64,8 @@ mkdir -p "$target/bin"
 for binary in yazi ya; do
   install -m 0755 "$work/$asset/$binary" "$target/bin/$binary"
 done
+printf '%s %s\n' "$version" "$asset" > "$target/.my-shell-release"
+INSTALL_STEP=activate-entry
 backup_dir=$(mktemp -d "$HOME/.local/opt/yazi-entry-backup-XXXXXXXX")
 for binary in yazi ya; do
   entry="$HOME/.local/bin/$binary"

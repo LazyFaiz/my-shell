@@ -1,5 +1,5 @@
 # Install explicitly with zplugin-install; startup never requires network access.
-typeset -g ZPLUGINDIR="${ZPLUGINDIR:-$XDG_DATA_HOME/zsh/plugins}"
+typeset -g ZPLUGINDIR="${ZPLUGINDIR:-${XDG_DATA_HOME:-$HOME/.local/share}/zsh/plugins}"
 typeset -ga ZSH_PLUGIN_REPOS=(
   zsh-users/zsh-autosuggestions
   zsh-users/zsh-history-substring-search
@@ -26,20 +26,32 @@ zplugin-install() {
 
 zplugin-update() {
   (( $+commands[git] )) || return 1
-  local repo target failed=0
+  local repo target failed=0 installed=0
   for repo in "${ZSH_PLUGIN_REPOS[@]}"; do
     target="$ZPLUGINDIR/${repo:t}"
-    [[ -d "$target/.git" ]] || continue
+    if [[ ! -d "$target/.git" ]]; then
+      print "Skip ${repo:t}: not installed (use zplugin-install)."
+      continue
+    fi
+    (( installed += 1 ))
     command git -C "$target" pull --ff-only || failed=1
   done
+  (( installed )) || print "No installed plugins to update."
   return "$failed"
 }
 
+typeset -ga ZSH_LOADED_PLUGINS=()
 _zsh_load_plugins() {
   local repo file
   for repo in "${ZSH_PLUGIN_REPOS[@]}"; do
     file="$ZPLUGINDIR/${repo:t}/${repo:t}.plugin.zsh"
-    [[ ! -r "$file" ]] || source "$file"
+    if [[ -r "$file" ]]; then
+      if source "$file"; then
+        ZSH_LOADED_PLUGINS+=("${repo:t}")
+      else
+        print -u2 "Plugin failed to load: ${repo:t}"
+      fi
+    fi
   done
 }
-_zsh_load_plugins
+[[ ${ZSH_PLUGINS_NO_LOAD:-0} == 1 ]] || _zsh_load_plugins
