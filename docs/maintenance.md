@@ -1,5 +1,7 @@
 # 环境检查、更新与恢复
 
+以下默认针对 Zsh。Fish 的同名维护命令操作 Fish 配置；安装、切换与恢复见 [Fish 指南](../fish/README.md)。从 Bash/Zsh 管理 Fish 可用 `bash scripts/update.sh --shell fish config`。
+
 ## 启用维护命令
 
 第一次获取本次更新时，在现有仓库目录执行：
@@ -36,7 +38,8 @@ shell-doctor
 ```zsh
 shell-update config          # git pull --ff-only，更新并安装 Zsh 配置
 shell-update plugins         # 更新已安装的四个 Zsh 插件
-shell-update tools           # 更新本仓库管理的 Neovim、Zellij、Yazi、tealdeer
+shell-update tools           # 更新本仓库管理的 Neovim、Zellij、Yazi、tealdeer、zoxide
+shell-update tools zoxide    # 只更新仓库管理的 zoxide
 shell-update tools tealdeer  # 只更新仓库管理的 tldr
 shell-update tools yazi      # 只更新 Yazi（同时检查 ya）
 shell-update all             # 顺序执行上述三类更新
@@ -119,8 +122,10 @@ GitHub Actions 在 push、pull request 和手动触发时，分别使用 Linux �
 bash scripts/check.sh
 ```
 
-检查所有 Bash 脚本和 Zsh 模块语法，执行下载校验、版本跳过、备份、更新保护、当前会话诊断、fzf 特殊文件名、Yazi 目录跟随等测试。需要 Bash、Zsh、Python 3、jq、unzip 和 file。CI 明确要求 Zsh，避免因为缺少 Zsh 而跳过相关测试。
+检查所有 Bash 脚本和 Zsh 模块语法，执行下载校验、版本跳过、备份、更新保护、当前会话诊断、fzf 特殊文件名、Yazi 目录跟随等测试。需要 Bash、Zsh、Fish、Python 3、jq、unzip 和 file。CI 明确要求 Zsh，避免因为缺少 Zsh 而跳过相关测试。
 
 测试里的下载与架构信息采用固定样例，不会在 CI 安装全部真实桌面工具。真实终端交互、字体、图片预览，以及所有发行版的实际二进制兼容性仍不在测试范围内。工作流提交并推送后才会在 GitHub 上开始运行。
 
 Yazi/ya 的多行版本输出也会参与版本检查，诊断会显示 Version 行中的版本号。旧版 tealdeer 的缓存兼容性提醒及迁移步骤见 [安装指南](install.md)。tealdeer 入口恢复使用 `tldr-entry-backup-*` 中的 `tldr`，与上面的工具恢复流程相同。
+
+zoxide 入口恢复使用 `zoxide-entry-backup-*` 中的 zoxide；Fish 的三个入口恢复见 Fish 指南。

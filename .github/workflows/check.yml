@@ -16,10 +16,15 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - name: Linux dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y zsh jq unzip file
+        run: sudo apt-get update && sudo apt-get install -y zsh jq unzip file xz-utils
       - name: macOS dependencies
         if: runner.os == 'macOS'
         run: brew install jq
+      - name: Install latest stable Fish
+        shell: bash
+        run: |
+          bash scripts/install-fish.sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Syntax and regression tests
         shell: bash
         run: bash scripts/check.sh

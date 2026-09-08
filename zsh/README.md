@@ -122,3 +122,5 @@ exec zsh
 ## 日常维护
 
 使用 `shell-doctor` 检查版本、PATH、插件加载和预览依赖。使用 `shell-update config`、`shell-update plugins`、`shell-update tools` 分类更新，或 `shell-update all` 顺序执行。具体恢复步骤与测试说明见 [维护指南](../docs/maintenance.md)。手动复制配置的用户需要在 `local.zsh` 中设置 `MY_SHELL_REPO`，或运行一次 `install-config.sh` 记录仓库位置。
+
+zoxide 最新稳定版可用 `bash scripts/install-config.sh --zoxide` 安装，或单独运行 `bash scripts/install-zoxide.sh`；随后 `exec zsh`，以后用 `shell-update tools zoxide` 更新。

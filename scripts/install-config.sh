@@ -4,12 +4,13 @@ set -euo pipefail
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib/install-common.sh"
 
 if [[ ${1:-} == --help ]]; then
-  printf '%s\n' 'Usage: bash scripts/install-config.sh [--astronvim] [--zellij] [--yazi] [--tealdeer] [--delta]' \
+  printf '%s\n' 'Usage: bash scripts/install-config.sh [--astronvim] [--zellij] [--yazi] [--tealdeer] [--zoxide] [--delta]' \
     'Backs up and installs Zsh configuration for the current user.' \
     '--astronvim: install latest stable Neovim; add AstroNvim only when nvim config is absent.' \
     '--zellij: install latest stable Zellij from GitHub.' \
     '--yazi: install latest stable Yazi and ya from GitHub.' \
     '--tealdeer: install latest stable tealdeer (tldr) from GitHub.' \
+    '--zoxide: install latest stable zoxide from GitHub.' \
     '--delta: configure Git to use delta, backing up existing Git config.'
   exit 0
 fi
@@ -18,6 +19,7 @@ delta=0
 zellij=0
 yazi=0
 tealdeer=0
+zoxide=0
 for arg in "$@"; do
   case "$arg" in
     --astronvim) astro=1 ;;
@@ -25,6 +27,7 @@ for arg in "$@"; do
     --zellij) zellij=1 ;;
     --yazi) yazi=1 ;;
     --tealdeer) tealdeer=1 ;;
+    --zoxide) zoxide=1 ;;
     *) printf 'Unknown option: %s\n' "$arg" >&2; exit 2 ;;
   esac
 done
@@ -67,6 +70,12 @@ fi
 if (( tealdeer )); then
   INSTALL_STEP=install-tealdeer
   bash "$repo_dir/scripts/install-tealdeer.sh"
+  export PATH="$HOME/.local/bin:$PATH"
+  hash -r
+fi
+if (( zoxide )); then
+  INSTALL_STEP=install-zoxide
+  bash "$repo_dir/scripts/install-zoxide.sh"
   export PATH="$HOME/.local/bin:$PATH"
   hash -r
 fi

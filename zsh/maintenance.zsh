@@ -46,7 +46,7 @@ shell-doctor() {
   if [[ ${path[(Ie)$HOME/.local/bin]} == 0 ]]; then
     print '[WARN] ~/.local/bin is not in PATH.'; (( warnings++ ))
   fi
-  for tool in nvim zellij yazi ya; do
+  for tool in nvim zellij yazi ya tldr zoxide; do
     if [[ -x "$HOME/.local/bin/$tool" && ${commands[$tool]:-} != "$HOME/.local/bin/$tool" ]]; then
       print -- "[WARN] $tool user installation is shadowed; put ~/.local/bin first and run rehash."
       (( warnings++ ))

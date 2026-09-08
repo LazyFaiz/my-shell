@@ -1,6 +1,17 @@
 # my-shell
 
-个人 Shell 配置仓库，目前包含适用于 Linux、macOS 和 WSL 的模块化 Zsh 配置。
+个人 Shell 配置仓库，包含适用于 Linux、macOS 和 WSL 的模块化 Zsh 与 Fish 配置。
+
+## Fish 配置
+
+新增 [Fish 安装与使用说明](fish/README.md)，参照 Zsh 的主题与工具体验。安装器查询 Fish 和 zoxide 官方最新稳定版（Linux/macOS，x86_64/ARM64），保留已有 Zsh 配置。
+
+```sh
+bash scripts/install-fish-config.sh
+exec "$HOME/.local/bin/fish"
+```
+
+已安装 Fish 4+、只更新配置、跳过 Fish/zoxide 下载时使用 `--config-only`。Fish 内的 `shell-update` 操作 Fish 配置；自动建议、语法高亮、补全和 Vi 模式使用内置功能。完整工具选项与恢复步骤见 Fish 说明。
 
 ## Zsh 配置
 
@@ -19,6 +30,8 @@
 Yazi 视频、PDF、SVG 和压缩包预览依赖（ffmpeg、Poppler、resvg、7-Zip）的多系统安装及服务器补装命令见 [预览依赖](docs/install.md#补齐-yazi-预览依赖)。这些依赖使用系统包管理器安装。
 
 旧版 tldr 缓存更新失败时，可用 `bash scripts/install-config.sh --tealdeer` 安装官方最新稳定版；然后 `exec zsh`、`tldr --update`。后续由 `shell-update tools tealdeer` 更新。
+
+zoxide 也使用官方最新稳定版安装器：`bash scripts/install-zoxide.sh`，后续 `shell-update tools zoxide`。
 
 ## 检查与更新
 
@@ -58,6 +71,8 @@ exec zsh
 ├── scripts/install-zellij.sh # GitHub 最新稳定版 Zellij
 ├── scripts/install-yazi.sh   # GitHub 最新稳定版 Yazi + ya
 ├── scripts/install-tealdeer.sh # GitHub 最新稳定版 tldr
+├── scripts/install-zoxide.sh # GitHub 最新稳定版 zoxide
+├── fish/                # 原生 Fish 模块、同款 Starship 主题与中文说明
 └── zsh/
     ├── .zshenv           # 环境变量与 XDG 路径
     ├── .zshrc            # 主入口、历史与补全

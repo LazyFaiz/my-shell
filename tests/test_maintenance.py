@@ -25,7 +25,7 @@ class UpdateTests(unittest.TestCase):
     def test_tools_does_not_install_missing_software(self):
         result=subprocess.run(['bash',str(ROOT/'scripts/update.sh'),'tools'],env=self.env,capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
-        self.assertEqual(result.stdout.count('no managed user entry'),4)
+        self.assertEqual(result.stdout.count('no managed user entry'),5)
 
     def test_tealdeer_update_routes_managed_tldr_entry(self):
         repo=self.root/'repo'
@@ -39,8 +39,36 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual((Path(self.env['HOME'])/'updated').read_text(),'updated')
 
+    def test_zoxide_update_routes_managed_zoxide_entry(self):
+        repo=self.root/'repo'
+        shutil.copytree(ROOT/'scripts',repo/'scripts')
+        (repo/'scripts/install-zoxide.sh').write_text('#!/bin/bash\nprintf updated > "$HOME/updated"\n')
+        entry=Path(self.env['HOME'])/'.local/bin/zoxide'
+        entry.parent.mkdir(parents=True)
+        entry.symlink_to(Path(self.env['HOME'])/'.local/opt/zoxide-v0.10.0-fixture/bin/zoxide')
+        result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'tools','zoxide'],
+                              env=self.env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual((Path(self.env['HOME'])/'updated').read_text(),'updated')
+
+    def test_fish_tools_and_native_plugins(self):
+        repo=self.root/'repo'
+        shutil.copytree(ROOT/'scripts',repo/'scripts')
+        (repo/'scripts/install-fish.sh').write_text('#!/bin/bash\nprintf fish-updated > "$HOME/fish-updated"\n')
+        entry=Path(self.env['HOME'])/'.local/bin/fish'
+        entry.parent.mkdir(parents=True)
+        entry.symlink_to(Path(self.env['HOME'])/'.local/opt/fish-4.9.2-fixture/bin/fish')
+        result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'--shell','fish','tools'],
+                              env=self.env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual((Path(self.env['HOME'])/'fish-updated').read_text(),'fish-updated')
+        result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'--shell','fish','plugins'],
+                              env=self.env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertIn('no managed external plugins',result.stdout)
+
     def test_unknown_category_or_tool_rejected(self):
-        for args in (['wrong'],['tools','wrong'],['plugins','yazi']):
+        for args in (['wrong'],['tools','wrong'],['plugins','yazi'],['--shell'],['--shell','wrong','config']):
             result=subprocess.run(['bash',str(ROOT/'scripts/update.sh'),*args],env=self.env,capture_output=True,text=True)
             self.assertEqual(result.returncode,2)
 
@@ -68,6 +96,24 @@ class UpdateTests(unittest.TestCase):
         branch=subprocess.check_output(['git','-C',str(repo),'branch','--show-current'],text=True,env=self.env).strip()
         subprocess.run(['git','-C',str(repo),'push','-u','origin',branch],env=self.env,check=True,capture_output=True)
         result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'config'],env=self.env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual((Path(self.env['HOME'])/'installed').read_text(),'installed')
+
+    def test_fish_config_update_uses_fish_installer(self):
+        repo=self.root/'repo'
+        remote=self.root/'remote.git'
+        shutil.copytree(ROOT/'scripts',repo/'scripts')
+        # Exercise real Git update while keeping actual user installation out of this test.
+        (repo/'scripts/install-fish-config.sh').write_text('#!/bin/bash\nprintf installed > "$HOME/installed"\n')
+        for args in (['init',str(repo)], ['-C',str(repo),'config','user.name','Test'],
+                     ['-C',str(repo),'config','user.email','test@example.invalid'],
+                     ['-C',str(repo),'add','.'], ['-C',str(repo),'commit','-m','fixture'],
+                     ['clone','--bare',str(repo),str(remote)],
+                     ['-C',str(repo),'remote','add','origin',str(remote)]):
+            subprocess.run(['git',*args],env=self.env,check=True,capture_output=True)
+        branch=subprocess.check_output(['git','-C',str(repo),'branch','--show-current'],text=True,env=self.env).strip()
+        subprocess.run(['git','-C',str(repo),'push','-u','origin',branch],env=self.env,check=True,capture_output=True)
+        result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'--shell','fish','config'],env=self.env,capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual((Path(self.env['HOME'])/'installed').read_text(),'installed')
 

@@ -8,5 +8,8 @@ for script in scripts/*.sh scripts/lib/*.sh; do bash -n "$script"; done
 syntax_dir=$(mktemp -d)
 trap 'rm -rf -- "$syntax_dir"' EXIT
 "$zsh_bin" -fc '[[ -z ${ZSH_TEST_MODULE_PATH:-} ]] || module_path=("$ZSH_TEST_MODULE_PATH" $module_path); zcompile -U "$@"' -- "$syntax_dir/check.zwc" zsh/.zshrc zsh/.zshenv zsh/*.zsh
+fish_bin=${FISH_BIN:-$(command -v fish)}
+export FISH_BIN="$fish_bin"
+for script in fish/*.fish; do "$fish_bin" --no-config --no-execute "$script"; done
 python3 -B scripts/run-tests.py
 git diff --check

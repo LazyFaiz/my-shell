@@ -3,3 +3,4 @@
 *.zsh text eol=lf
 .zshrc text eol=lf
 .zshenv text eol=lf
+*.fish text eol=lf

@@ -1,0 +1,6 @@
+# Copy to local.fish; this file is loaded last in interactive Fish.
+# set -gx EDITOR nvim
+# fish_add_path --global --path "$HOME/work/bin"
+# fish_default_key_bindings  # Switch to Emacs bindings.
+# set -gx MY_SHELL_REPO "$HOME/my-shell"
+# set -gx STARSHIP_CONFIG "$HOME/.config/starship.toml"
