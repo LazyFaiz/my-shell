@@ -21,6 +21,8 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install jq
       - name: Install latest stable Fish
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           # A receive error can interrupt GitHub downloads before tests start.

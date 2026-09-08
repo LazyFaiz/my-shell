@@ -33,6 +33,7 @@ import os, pathlib, shutil, sys
 args=sys.argv[1:]
 url=next(arg for arg in args if arg.startswith('https://'))
 root=pathlib.Path(os.environ['FIXTURE'])
+if not url.endswith('/latest') and '-H' in args: sys.exit(98)
 if (root/'FAIL_ALL').exists(): sys.exit(22)
 if not url.endswith('/latest') and (root/'NO_ARCHIVE').exists(): sys.exit(99)
 shutil.copyfile(root/('release.json' if url.endswith('/latest') else 'archive'),args[args.index('-o')+1])
@@ -92,6 +93,13 @@ shutil.copyfile(root/('release.json' if url.endswith('/latest') else 'archive'),
                 self.assertIn("archive download skipped",second.stdout)
                 self.assertEqual(self.entry.resolve(),original)
                 (self.root/"NO_ARCHIVE").unlink()
+
+    def test_token_is_only_sent_to_metadata(self):
+        self.fixture()
+        self.env["GITHUB_TOKEN"]="test-private-token"
+        result=self.run_install()
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertNotIn("test-private-token",result.stdout+result.stderr)
 
     def test_failure_preserves_entries(self):
         for kind in ("prerelease","bad_digest","broken"):

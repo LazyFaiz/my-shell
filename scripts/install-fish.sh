@@ -30,8 +30,7 @@ else
 fi
 work=$(mktemp -d)
 INSTALL_STEP=release-metadata
-curl -fsSL --retry 3 --connect-timeout 15 --max-time 120 \
-  https://api.github.com/repos/fish-shell/fish-shell/releases/latest -o "$work/release.json"
+github_latest_release fish-shell/fish-shell "$work/release.json"
 jq -e '.draft == false and .prerelease == false' "$work/release.json" >/dev/null
 version=$(jq -er '.tag_name' "$work/release.json")
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Unexpected stable release tag.' >&2; exit 1; }

@@ -51,3 +51,24 @@ backup_config_snapshot() {
     cp -a -- "$1" "$2"
   fi
 }
+
+# Authenticate release metadata only; archive downloads never receive this header.
+github_latest_release() {
+  local repo=$1 destination=$2 response result=0
+  local -a curl_args=(-fsSL --retry 3 --connect-timeout 15 --max-time 120)
+  [[ $repo =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || { echo 'Invalid GitHub repository.' >&2; return 2; }
+  if [[ -n ${GITHUB_TOKEN:-} ]]; then
+    curl_args+=(-H "Authorization: Bearer $GITHUB_TOKEN")
+  fi
+  response=$(curl "${curl_args[@]}" --write-out '%{http_code}'     "https://api.github.com/repos/$repo/releases/latest" -o "$destination") || result=$?
+  if (( result != 0 )); then
+    printf 'GitHub release metadata failed: HTTP %s (curl exit %s).\n' "${response:-unknown}" "$result" >&2
+    if [[ $response == 403 || $response == 429 ]]; then
+      echo 'Check API rate limits or access restrictions. CI should provide its read-only GITHUB_TOKEN; repeated immediate retries may not help.' >&2
+    fi
+    if [[ ${GITHUB_ACTIONS:-} == true ]]; then
+      echo '::error title=Release metadata request failed::GitHub API request failed. See the HTTP status and curl error above; verify token access and rate limits.' >&2
+    fi
+  fi
+  return "$result"
+}
