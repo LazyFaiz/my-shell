@@ -140,7 +140,7 @@ fish_add_path --global --path "$HOME/work/bin"
 | Ctrl+← / Ctrl+→ | 按词移动 |
 | Ctrl+\ | 开关自动建议 |
 
-`ll`/`la`、`lt`、`c 文件`、`mkcd 目录`、`extract 压缩包`、`gs`、`gd`、`glog`、`jqp`、`ports`、`disk`、`mem`、`zj`、`za work`、`zl` 等与 Zsh 对应。`c` 表示 bat 查看文件；返回上一目录用 `cd -`。extract 只用于可信压缩包，目标目录已存在时拒绝解压。
+`ll`/`la`、`lt`、`c 文件`、`mkcd 目录`、`extract 压缩包`、`gs`、`gd`、`glog`、`jqp`、`ports`、`disk`、`mem`、`zj`、`za work`、`zl`、`zk work` 等与 Zsh 对应。`zk work` 会终止 work 会话及其中的终端任务；暂时离开请使用 detach。`c` 表示 bat 查看文件；返回上一目录用 `cd -`。extract 只用于可信压缩包，目标目录已存在时拒绝解压。
 
 Fish 不是 Bash/Zsh：例如环境变量使用 `set -gx`，不要 source .zshrc 或 Bash 安装脚本。运行本仓库脚本始终用 `bash scripts/xxx.sh`。
 

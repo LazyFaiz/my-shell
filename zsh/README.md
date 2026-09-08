@@ -104,6 +104,7 @@ ZDOTDIR="$PWD" zsh
 | `y [目录]` | 打开 Yazi，q 退出跟随目录；Q 退出保持原目录 |
 | `zj` | 打开 Zellij |
 | `za work` / `zl` | 创建或连接 work 会话 / 列出会话 |
+| `zk work` | 终止 work 会话及其中的终端任务；暂时离开请使用 detach |
 | `extract 文件` | 解压到文件旁的新 `.extracted` 目录 |
 
 可选工具未安装时不会定义相应别名。`extract` 支持 tar、tar.gz、tar.bz2、tar.xz、zip、7z、rar；RAR 支持取决于安装的 7-Zip 构建。`c` 仍用于 bat 查看文件，不表示清屏。delta 通过安装脚本的 `--delta` 选项配置 Git 后生效。

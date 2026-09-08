@@ -57,6 +57,7 @@ if (( $+commands[zellij] )); then
   alias zj='zellij'
   alias za='zellij attach --create'
   alias zl='zellij list-sessions'
+  alias zk='zellij kill-session'
 fi
 
 # Extract into a new directory beside the archive; keep the original file.
