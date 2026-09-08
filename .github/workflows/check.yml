@@ -23,7 +23,17 @@ jobs:
       - name: Install latest stable Fish
         shell: bash
         run: |
-          bash scripts/install-fish.sh
+          # A receive error can interrupt GitHub downloads before tests start.
+          # Each attempt still performs release and checksum validation.
+          for attempt in 1 2 3; do
+            if bash scripts/install-fish.sh; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              exit 1
+            fi
+            sleep 5
+          done
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Syntax and regression tests
         shell: bash
