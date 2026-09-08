@@ -4,7 +4,7 @@ source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib/install-commo
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 case ${1:---help} in
   --help|-h)
-    printf '%s\n' 'Usage: shell-update config|plugins|tools|all [neovim|zellij|yazi ...]' \
+    printf '%s\n' 'Usage: shell-update config|plugins|tools|all [neovim|zellij|yazi|tealdeer ...]' \
       'config: fast-forward repository and install configuration (preserves local.zsh).' \
       'plugins: update installed plugins only.' \
       'tools: update managed tools only; optional tool names select a subset.' \
@@ -15,7 +15,7 @@ case ${1:---help} in
 esac
 if [[ "$mode" != tools && $# != 0 ]]; then echo 'Tool names are only valid with tools.' >&2; exit 2; fi
 for tool in "$@"; do
-  case "$tool" in neovim|zellij|yazi) ;; *) echo "Unknown tool: $tool" >&2; exit 2 ;; esac
+  case "$tool" in neovim|zellij|yazi|tealdeer) ;; *) echo "Unknown tool: $tool" >&2; exit 2 ;; esac
 done
 if [[ "$mode" == config || "$mode" == all ]]; then
   INSTALL_STEP=repository-update
@@ -36,10 +36,11 @@ if [[ "$mode" == plugins ]]; then
   echo 'Plugin update finished. Run exec zsh to load it.'
   exit 0
 fi
-[[ $# != 0 ]] || set -- neovim zellij yazi
+[[ $# != 0 ]] || set -- neovim zellij yazi tealdeer
 for tool in "$@"; do
   binary=$tool
   [[ "$tool" != neovim ]] || binary=nvim
+  [[ "$tool" != tealdeer ]] || binary=tldr
   entry="$HOME/.local/bin/$binary"
   # Only manage entries created by this repository; package-manager tools stay separate.
   if [[ ! -L "$entry" ]]; then echo "Skip $tool: no managed user entry."; continue; fi

@@ -1,7 +1,7 @@
 # These functions inspect the current Zsh session, not a new login shell.
 shell-doctor() {
   emulate -L zsh
-  local tool output plugin file warnings=0
+  local tool output summary plugin file warnings=0
   local -a match
   local mbegin mend
   print -- "Zsh $ZSH_VERSION | $(uname -s) $(uname -m)"
@@ -16,7 +16,17 @@ shell-doctor() {
     if (( $+commands[$resolved] )); then
       output=$(command "$resolved" --version 2>&1)
       if (( $? == 0 )); then
-        print -r -- "[OK] $tool: ${output%%$'\n'*} | $commands[$resolved]"
+        summary=${output%%$'\n'*}
+        if [[ $tool == yazi || $tool == ya ]] && [[ "$output" =~ 'Version:[[:space:]]*([^[:space:]]+)' ]]; then
+          summary="$summary $match[1]"
+        fi
+        print -r -- "[OK] $tool: $summary | $commands[$resolved]"
+        if [[ $tool == tldr && "$output" == *tealdeer* ]] && [[ "$output" =~ '([0-9]+)\.([0-9]+)\.([0-9]+)' ]]; then
+          if (( match[1] < 1 || (match[1] == 1 && match[2] < 8) )); then
+            print '[WARN] Old tealdeer may fail to update cache. Run bash scripts/install-tealdeer.sh from your repository, then rehash.'
+            (( warnings++ ))
+          fi
+        fi
         if [[ $tool == nvim || $tool == fzf ]] && [[ "$output" =~ '([0-9]+)\.([0-9]+)\.([0-9]+)' ]]; then
           if [[ $match[1] == 0 ]] && { [[ $tool == nvim ]] && (( match[2] < 11 )) || [[ $tool == fzf ]] && (( match[2] < 53 )); }; then
             print -- "[WARN] $tool version is too old for AstroNvim / Yazi fzf navigation."

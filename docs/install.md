@@ -12,7 +12,7 @@ Ubuntu 需启用 universe 仓库。先安装工具，Neovim、Zellij、Starship 
 
 ```bash
 sudo apt update
-sudo apt install -y zsh git curl ca-certificates file btop jq tealdeer git-delta \
+sudo apt install -y zsh git curl ca-certificates file btop jq git-delta \
   fzf fd-find bat eza zoxide ripgrep unzip 7zip tar gzip bzip2 xz-utils \
   build-essential ffmpeg poppler-utils
 ```
@@ -184,6 +184,30 @@ y
 
 `7zz` 和 `7z` 有一个可用即可，不需要为了另一个 `absent` 重复安装。关闭并重新打开 Yazi，分别选中视频、PDF、SVG 和压缩包，确认实际预览。命令能运行不代表当前 SSH 客户端支持图片显示；压缩格式支持也取决于 7-Zip 的发行版构建。依赖用途参见 [Yazi 官方安装文档](https://yazi-rs.github.io/docs/installation/)。
 
+### Linux / macOS：安装新版 tealdeer（tldr）
+
+Ubuntu 24.04 的旧版 tealdeer 可能因上游缓存地址变更导致 ZIP 解压错误。Debian 的旧版本也可能受影响。完整安装命令已加入 `--tealdeer`，无需先通过 apt 安装 tealdeer。参考 [上游问题](https://github.com/tealdeer-rs/tealdeer/issues/459)。
+
+已有配置的服务器在更新仓库后执行：
+
+```bash
+bash scripts/install-config.sh --tealdeer
+exec zsh
+```
+
+再执行：
+
+```zsh
+tldr --version
+tldr --update
+tldr tar
+shell-doctor
+```
+
+也可单独运行 `bash scripts/install-tealdeer.sh`。脚本支持 Linux/macOS 的 x86_64、ARM64，依赖 curl、jq 和 SHA-256 工具；查询 GitHub 最新稳定版，校验摘要并验证程序可运行后安装。命令位于 `~/.local/bin/tldr`，程序在 `~/.local/opt/tldr-版本-随机目录/`，旧入口备份在 `tldr-entry-backup-*/`。不会卸载 apt/brew 的软件包，也不自动联网更新帮助缓存。
+
+以前按手动命令安装到用户目录的 tldr，也需运行一次该脚本才会纳入仓库管理。之后用 `shell-update tools tealdeer` 更新；同版本跳过二进制下载。新版诊断对 tealdeer 1.8.0 以下给出兼容性提醒（保守提示，不代替真实缓存更新检查）。
+
 ### Linux：安装 Starship（软件源没有时）
 
 ```bash
@@ -213,12 +237,12 @@ starship --version
 ```bash
 git clone https://github.com/LazyFaiz/my-shell.git ~/my-shell
 cd ~/my-shell
-bash scripts/install-config.sh --astronvim --zellij --yazi --delta
+bash scripts/install-config.sh --astronvim --zellij --yazi --tealdeer --delta
 ```
 
 已有仓库时进入原目录执行 `git pull --ff-only`，不必重新克隆。
 
-脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` / `--zellij` / `--yazi` 时额外从 GitHub 安装对应工具的最新稳定版到用户目录。它会：
+脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` / `--zellij` / `--yazi` / `--tealdeer` 时额外从 GitHub 安装对应工具的最新稳定版到用户目录。它会：
 
 - 备份旧 Zsh 配置、入口文件；更新模块时保留 `local.zsh`。
 - 在 `~/.zshenv` 追加一次配置入口，保留原文件内容。
@@ -227,6 +251,8 @@ bash scripts/install-config.sh --astronvim --zellij --yazi --delta
 - 使用 `--delta` 时备份 Git 配置，再启用彩色 diff、行号、差异导航；不改 Git 用户名和邮箱。
 - 使用 `--astronvim` 时安装最新稳定版 Neovim，再克隆官方 AstroNvim 模板；已有 Neovim 配置会保留，但 Neovim 程序仍会更新。
 - 首次安装 AstroNvim 时，将原有 Neovim data/state/cache 目录移到同级 `.bak.时间戳` 目录。
+
+使用 `--tealdeer` 时安装最新版 tealdeer，并备份旧 tldr 入口。
 
 省略全部选项只安装 Zsh 配置。备份位置会在完成后打印，默认在 `~/.local/state/my-shell/backups/`。如果以前设置过自定义 `ZDOTDIR`，需确保 Zsh 实际读取的 `.zshenv` 也包含这里的入口，或先取消旧 `ZDOTDIR` 再启动。
 

@@ -34,7 +34,7 @@ release_is_current() {
     [[ -r "$installed" ]] || return 1
     [[ $(cat "$installed") == "$expected $expected_asset" ]] || return 1
     output=$("$entry" --version 2>/dev/null) || return 1
-    parsed=$(printf '%s\n' "$output" | sed -n '1s/^[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p')
+    parsed=$(printf '%s\n' "$output" | sed -n 's/^[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' | sed -n '1p')
     [[ "$parsed" == "${expected#v}" ]] || return 1
   done
   return 0

@@ -18,6 +18,8 @@
 
 Yazi 视频、PDF、SVG 和压缩包预览依赖（ffmpeg、Poppler、resvg、7-Zip）的多系统安装及服务器补装命令见 [预览依赖](docs/install.md#补齐-yazi-预览依赖)。这些依赖使用系统包管理器安装。
 
+旧版 tldr 缓存更新失败时，可用 `bash scripts/install-config.sh --tealdeer` 安装官方最新稳定版；然后 `exec zsh`、`tldr --update`。后续由 `shell-update tools tealdeer` 更新。
+
 ## 检查与更新
 
 加载新配置后使用 shell-doctor 检查当前会话；shell-update config、shell-update plugins、shell-update tools 分别更新配置、插件和已安装工具。shell-update all 按顺序更新，工具版本一致时跳过安装包下载。详见 [维护与恢复指南](docs/maintenance.md)。GitHub Actions 会在提交推送和 PR 时运行 Linux/macOS 检查。
@@ -55,6 +57,7 @@ exec zsh
 ├── scripts/install-neovim.sh # GitHub 最新稳定版 Neovim
 ├── scripts/install-zellij.sh # GitHub 最新稳定版 Zellij
 ├── scripts/install-yazi.sh   # GitHub 最新稳定版 Yazi + ya
+├── scripts/install-tealdeer.sh # GitHub 最新稳定版 tldr
 └── zsh/
     ├── .zshenv           # 环境变量与 XDG 路径
     ├── .zshrc            # 主入口、历史与补全

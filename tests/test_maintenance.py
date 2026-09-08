@@ -25,7 +25,19 @@ class UpdateTests(unittest.TestCase):
     def test_tools_does_not_install_missing_software(self):
         result=subprocess.run(['bash',str(ROOT/'scripts/update.sh'),'tools'],env=self.env,capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
-        self.assertEqual(result.stdout.count('no managed user entry'),3)
+        self.assertEqual(result.stdout.count('no managed user entry'),4)
+
+    def test_tealdeer_update_routes_managed_tldr_entry(self):
+        repo=self.root/'repo'
+        shutil.copytree(ROOT/'scripts',repo/'scripts')
+        (repo/'scripts/install-tealdeer.sh').write_text('#!/bin/bash\nprintf updated > "$HOME/updated"\n')
+        entry=Path(self.env['HOME'])/'.local/bin/tldr'
+        entry.parent.mkdir(parents=True)
+        entry.symlink_to(Path(self.env['HOME'])/'.local/opt/tldr-v1.9.0-fixture/bin/tldr')
+        result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'tools','tealdeer'],
+                              env=self.env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual((Path(self.env['HOME'])/'updated').read_text(),'updated')
 
     def test_unknown_category_or_tool_rejected(self):
         for args in (['wrong'],['tools','wrong'],['plugins','yazi']):
@@ -136,3 +148,29 @@ shell-update tools yazi
             result=subprocess.run([ZSH,'-fc',code,'--',str(ROOT),str(root)],capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stderr)
             self.assertEqual(result.stdout,'tools\nyazi\n')
+
+@unittest.skipUnless(ZSH, 'Zsh required')
+class VersionOutputTests(unittest.TestCase):
+    def test_multiline_yazi_and_tealdeer_versions(self):
+        with tempfile.TemporaryDirectory(prefix='doctor-tools-') as folder:
+            root=Path(folder)
+            env=os.environ.copy()
+            env['PATH']=str(root)+':'+env['PATH']
+            for version, old in [('1.6.1', True), ('1.9.0', False)]:
+                for name, output in [('yazi', 'Yazi\n    Version: 26.9.1 (fixture)\n    Rustc: 1.98.0'),
+                                     ('ya', 'Ya\n    Version: 26.9.1 (fixture)'),
+                                     ('tldr', 'tealdeer '+version)]:
+                    binary=root/name
+                    binary.write_text("#!/bin/sh\nprintf '%s\\n' '"+output+"'\n")
+                    binary.chmod(0o755)
+                code='''[[ -z ${ZSH_TEST_MODULE_PATH:-} ]] || module_path=("$ZSH_TEST_MODULE_PATH" $module_path)
+zmodload zsh/parameter || exit 1
+source "$1/zsh/maintenance.zsh"
+ZSH_CONFIG_DIR="$1/zsh"
+ZSH_LOADED_PLUGINS=()
+shell-doctor
+'''
+                result=subprocess.run([ZSH,'-fc',code,'--',str(ROOT)],env=env,capture_output=True,text=True)
+                self.assertIn('[OK] yazi: Yazi 26.9.1 |',result.stdout)
+                self.assertIn('[OK] ya: Ya 26.9.1 |',result.stdout)
+                self.assertEqual('Old tealdeer' in result.stdout,old,result.stdout)
