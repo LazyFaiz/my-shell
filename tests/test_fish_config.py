@@ -40,7 +40,15 @@ class FishConfigTests(unittest.TestCase):
 
     def fish(self,code,interactive=False):
         return subprocess.run([FISH,"--no-config","-ic" if interactive else "-c",code,
-                               "--",str(ROOT)],env=self.env,capture_output=True,text=True)
+                               "--",str(ROOT)],env=self.env,capture_output=True,text=True,
+                               encoding="utf-8",errors="backslashreplace")
+
+    def test_non_utf8_diagnostics_do_not_abort_capture(self):
+        self.mock("raw-output", "#!/usr/bin/env python3\nimport sys\nsys.stdout.buffer.write(bytes([255,10]))\nsys.stderr.buffer.write(bytes([254,10]))\nsys.exit(7)\n")
+        result=self.fish("command raw-output")
+        self.assertEqual(result.returncode,7)
+        self.assertEqual(result.stdout,"\\xff\n")
+        self.assertEqual(result.stderr,"\\xfe\n")
 
     def test_noninteractive_is_quiet(self):
         result=self.fish('source "$argv[1]/fish/config.fish"; printf "%s" "$EDITOR"')

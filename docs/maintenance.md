@@ -129,3 +129,5 @@ bash scripts/check.sh
 Yazi/ya 的多行版本输出也会参与版本检查，诊断会显示 Version 行中的版本号。旧版 tealdeer 的缓存兼容性提醒及迁移步骤见 [安装指南](install.md)。tealdeer 入口恢复使用 `tldr-entry-backup-*` 中的 `tldr`，与上面的工具恢复流程相同。
 
 zoxide 入口恢复使用 `zoxide-entry-backup-*` 中的 zoxide；Fish 的三个入口恢复见 Fish 指南。
+
+配置备份会保存软链接指向的实际内容（含目录内的链接），形成独立快照；恢复得到普通文件/目录，不会自动重建原 dotfiles 链接关系。嵌套的断链或循环链接导致备份失败时，会在写入配置前停止，请先修复链接再重试。此规则仅用于配置备份，程序入口备份仍保留软链接。

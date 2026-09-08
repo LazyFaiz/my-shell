@@ -61,7 +61,7 @@ done
 INSTALL_STEP=backup-config
 mkdir -p "$XDG_STATE_HOME/my-shell/backups"
 backup_dir=$(mktemp -d "$XDG_STATE_HOME/my-shell/backups/fish-XXXXXXXX")
-if [[ -e "$config_dir" || -L "$config_dir" ]]; then cp -a "$config_dir" "$backup_dir/fish"; fi
+backup_config_snapshot "$config_dir" "$backup_dir/fish"
 INSTALL_STEP=copy-config
 mkdir -p "$module_dir"
 for file in config.fish env.fish aliases.fish bindings.fish fzf.fish prompt.fish maintenance.fish starship.toml local.fish.example; do
@@ -89,7 +89,7 @@ if (( delta )); then
     if [[ -e "$file" ]]; then
       name=gitconfig
       [[ "$file" != "$XDG_CONFIG_HOME/git/config" ]] || name=xdg-gitconfig
-      cp -a "$file" "$backup_dir/$name"
+      backup_config_snapshot "$file" "$backup_dir/$name"
     fi
   done
   git config --global core.pager delta

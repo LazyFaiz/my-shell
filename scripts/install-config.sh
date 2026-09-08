@@ -82,9 +82,7 @@ fi
 INSTALL_STEP=backup-config
 backup_dir=$(mktemp -d "$XDG_STATE_HOME/my-shell/backups/install-XXXXXXXX")
 backup() {
-  if [[ -e "$1" || -L "$1" ]]; then
-    cp -a "$1" "$backup_dir/$2"
-  fi
+  backup_config_snapshot "$1" "$backup_dir/$2"
 }
 backup "$config_dir" zsh
 backup "$HOME/.zshenv" zshenv

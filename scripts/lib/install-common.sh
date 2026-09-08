@@ -39,3 +39,15 @@ release_is_current() {
   done
   return 0
 }
+
+# Config backups must remain snapshots when dotfiles are symlinked.
+# Dereference existing links (including nested links); preserve a dangling root
+# link as there is no content to snapshot. Nested broken/cyclic links fail the
+# backup before configuration copying begins.
+backup_config_snapshot() {
+  if [[ -e "$1" ]]; then
+    cp -aL -- "$1" "$2"
+  elif [[ -L "$1" ]]; then
+    cp -a -- "$1" "$2"
+  fi
+}
