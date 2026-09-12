@@ -38,16 +38,24 @@ _zsh_fzf_init() {
 _zsh_fzf_init
 
 _fzf_file_no_hidden() {
-  local result
+  emulate -L zsh
+  local result file exit_code
   if (( $+commands[fd] )); then
-    result=$(command fd --type f --print0 | fzf --read0)
+    result=$(command fd --type f --print0 | command fzf --read0 --print0 --multi)
   elif (( $+commands[fdfind] )); then
-    result=$(command fdfind --type f --print0 | fzf --read0)
+    result=$(command fdfind --type f --print0 | command fzf --read0 --print0 --multi)
   else
-    result=$(find . -name '.*' ! -name . -prune -o -type f -print0 | fzf --read0)
+    result=$(command find . -name '.*' ! -name . -prune -o -type f -print0 | command fzf --read0 --print0 --multi)
   fi
-  # Quote paths containing spaces and shell metacharacters before insertion.
-  [[ -z "$result" ]] || LBUFFER+="${(q)result} "
+  exit_code=$?
+  if (( exit_code == 0 )); then
+    # Zsh preserves NUL bytes; split records before shell-quoting each path.
+    # The final NUL also protects filenames ending in newline from $(...) trimming.
+    for file in "${(@0)result}"; do
+      [[ -z "$file" ]] || LBUFFER+="${(q)file} "
+    done
+  fi
   zle redisplay
+  return "$exit_code"
 }
 zle -N _fzf_file_no_hidden

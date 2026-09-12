@@ -125,3 +125,20 @@ exec zsh
 使用 `shell-doctor` 检查版本、PATH、插件加载和预览依赖。使用 `shell-update config`、`shell-update plugins`、`shell-update tools` 分类更新，或 `shell-update all` 顺序执行。具体恢复步骤与测试说明见 [维护指南](../docs/maintenance.md)。手动复制配置的用户需要在 `local.zsh` 中设置 `MY_SHELL_REPO`，或运行一次 `install-config.sh` 记录仓库位置。
 
 zoxide 最新稳定版可用 `bash scripts/install-config.sh --zoxide` 安装，或单独运行 `bash scripts/install-zoxide.sh`；随后 `exec zsh`，以后用 `shell-update tools zoxide` 更新。
+
+## 插件安装失败与重装
+
+插件会先下载到插件目录下的临时目录，确认 Git 目录和插件入口存在后再启用。首次下载失败不会留下占用正式路径的半成品，重新运行 `zplugin-install` 即可重试。
+
+旧版本遗留的不完整目录，或需要重新下载的插件，执行：
+
+```zsh
+zplugin-reinstall zsh-autosuggestions
+exec zsh
+```
+
+一次指定一个完整插件名：zsh-autosuggestions、zsh-history-substring-search、zsh-vi-mode、fast-syntax-highlighting。重装会先完成下载，再将旧目录移到输出提示的隐藏备份目录；旧的个人修改仍在备份中，新目录使用上游内容。下载失败保留原目录，启用失败会尝试恢复旧目录，不删除备份。
+
+同一插件的并发安装由锁目录阻止。若进程被强制终止，确认没有安装任务运行后，按错误提示用 `rmdir` 删除对应的空锁目录，再重试；不要删除整个插件目录。
+
+Ctrl+F 支持多选（fzf 中用 Tab 选择），结果按 NUL 分隔后逐个转义插入，保留文件名中的空格、引号及换行；取消选择时不改命令行。

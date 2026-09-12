@@ -3,7 +3,7 @@ function shell-doctor --description 'Check the current Fish session (no network)
     printf 'Fish %s | %s %s\n' "$version" (uname -s) (uname -m)
     printf 'Config: %s\n' "$MY_SHELL_FISH_DIR"
     echo '--- Commands and versions ---'
-    for tool in fish git starship fzf fd bat nvim zellij yazi ya btop jq tldr delta zoxide rg file
+    for tool in fish git starship fzf fd bat eza nvim zellij yazi ya btop jq tldr delta zoxide rg file
         set -l resolved $tool
         if not command -q $resolved
             switch $tool
@@ -32,8 +32,8 @@ function shell-doctor --description 'Check the current Fish session (no network)
             end
         end
         printf '[OK] %s: %s | %s\n' $tool "$summary" (command -s $resolved)
-        set -l number (string match -r '(\d+)\.(\d+)\.(\d+)' -- "$summary")
-        if test (count $number) -eq 4
+        set -l number (string match -r '(\d+)\.(\d+)(?:\.(\d+))?' -- "$summary")
+        if test (count $number) -ge 3
             set -l old 0
             switch $tool
                 case fish
@@ -73,7 +73,7 @@ function shell-doctor --description 'Check the current Fish session (no network)
     end
     echo '[INFO] Autosuggestions, highlighting, completion and Vi mode are built into Fish.'
     printf '[INFO] Key bindings: %s\n' "$fish_key_bindings"
-    if command -q fzf; and not functions -q fzf-file-widget
+    if command -q fzf; and not functions -q fzf-file-widget fzf-history-widget
         echo '[WARN] fzf Fish bindings are not loaded; install a current fzf and restart Fish.'
         set warnings (math $warnings + 1)
     end

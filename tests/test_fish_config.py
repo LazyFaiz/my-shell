@@ -194,6 +194,18 @@ FISH
         self.assertIn("tldr is too old",result.stdout)
         self.assertEqual(result.stderr,"")
 
+    def test_doctor_two_part_fzf_and_missing_eza(self):
+        self.env["PATH"]=str(self.bin)
+        self.mock("uname", "#!/bin/sh\necho Linux\n")
+        self.mock("fzf", '#!/bin/sh\necho "$FZF_VERSION"\n')
+        code='set -g MY_SHELL_FISH_DIR "$argv[1]/fish"; source "$argv[1]/fish/maintenance.fish"; shell-doctor'
+        for version,old in (("0.44 (devel)",True),("0.60 (devel)",False),("0.44.1",True),("0.60.3",False)):
+            self.env["FZF_VERSION"]=version
+            result=self.fish(code)
+            self.assertEqual("fzf is too old" in result.stdout,old,result.stdout)
+            self.assertIn("eza not installed",result.stdout)
+            self.assertIn("fzf Fish bindings are not loaded",result.stdout)
+
     def test_update_wrapper_uses_fish_category(self):
         repo=self.root/"repo with spaces"
         (repo/"scripts").mkdir(parents=True)

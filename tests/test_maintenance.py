@@ -220,3 +220,42 @@ shell-doctor
                 self.assertIn('[OK] yazi: Yazi 26.9.1 |',result.stdout)
                 self.assertIn('[OK] ya: Ya 26.9.1 |',result.stdout)
                 self.assertEqual('Old tealdeer' in result.stdout,old,result.stdout)
+
+
+@unittest.skipUnless(ZSH, 'Zsh required')
+class DoctorCoverageTests(unittest.TestCase):
+    def test_two_part_fzf_eza_and_real_widgets(self):
+        with tempfile.TemporaryDirectory(prefix='doctor-coverage-') as folder:
+            root=Path(folder)
+            env=os.environ.copy()
+            env['PATH']=str(root)
+            for name,content in (('uname','echo Linux'),('fzf','echo "$FZF_VERSION"')):
+                p=root/name
+                p.write_text('#!/bin/sh\n'+content+'\n')
+                p.chmod(0o755)
+            base=r"""[[ -z ${ZSH_TEST_MODULE_PATH:-} ]] || module_path=("$ZSH_TEST_MODULE_PATH" $module_path)
+zmodload zsh/parameter || exit 1
+source "$1/zsh/maintenance.zsh"
+ZSH_CONFIG_DIR="$1/zsh"
+ZSH_LOADED_PLUGINS=()
+FZF_CTRL_T_OPTS="--preview 'cat -- {}'"
+"""
+            for version,old in (('0.44 (devel)',True),('0.60 (devel)',False),('0.44.1',True),('0.60.3',False)):
+                env['FZF_VERSION']=version
+                result=subprocess.run([ZSH,'-fc',base+'shell-doctor','--',str(ROOT)],env=env,capture_output=True,text=True)
+                self.assertEqual('fzf version is too old' in result.stdout,old,result.stdout)
+                self.assertIn('eza not installed',result.stdout)
+                self.assertIn('fzf-file-widget is not loaded/registered',result.stdout)
+                self.assertIn('Ctrl+T is not bound',result.stdout)
+            code=base+r"""fzf-file-widget() { :; }
+fzf-history-widget() { :; }
+zle -N fzf-file-widget
+zle -N fzf-history-widget
+bindkey -e
+bindkey '^T' fzf-file-widget
+bindkey '^R' fzf-history-widget
+shell-doctor
+"""
+            result=subprocess.run([ZSH,'-fc',code,'--',str(ROOT)],env=env,capture_output=True,text=True)
+            self.assertNotIn('not loaded/registered',result.stdout)
+            self.assertNotIn('is not bound',result.stdout)

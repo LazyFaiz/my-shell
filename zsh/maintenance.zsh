@@ -1,13 +1,13 @@
 # These functions inspect the current Zsh session, not a new login shell.
 shell-doctor() {
   emulate -L zsh
-  local tool output summary plugin file warnings=0
+  local tool output summary plugin file binding warnings=0
   local -a match
   local mbegin mend
   print -- "Zsh $ZSH_VERSION | $(uname -s) $(uname -m)"
   print -- "Config: ${ZSH_CONFIG_DIR:-${ZDOTDIR:-$HOME/.config/zsh}}"
   print -- '--- Commands and versions ---'
-  for tool in zsh git starship fzf fd bat nvim zellij yazi ya btop jq tldr delta zoxide rg file; do
+  for tool in zsh git starship fzf fd bat eza nvim zellij yazi ya btop jq tldr delta zoxide rg file; do
     local resolved=$tool
     (( $+commands[$resolved] )) || {
       [[ $tool != fd ]] || resolved=fdfind
@@ -27,7 +27,7 @@ shell-doctor() {
             (( warnings++ ))
           fi
         fi
-        if [[ $tool == nvim || $tool == fzf ]] && [[ "$output" =~ '([0-9]+)\.([0-9]+)\.([0-9]+)' ]]; then
+        if [[ $tool == nvim || $tool == fzf ]] && [[ "$output" =~ '([0-9]+)\.([0-9]+)(\.([0-9]+))?' ]]; then
           if [[ $match[1] == 0 ]] && { [[ $tool == nvim ]] && (( match[2] < 11 )) || [[ $tool == fzf ]] && (( match[2] < 53 )); }; then
             print -- "[WARN] $tool version is too old for AstroNvim / Yazi fzf navigation."
             (( warnings++ ))
@@ -68,6 +68,21 @@ shell-doctor() {
     fi
   done
   print -- '--- fzf preview and optional media ---'
+  if (( $+commands[fzf] )); then
+    for tool in fzf-file-widget fzf-history-widget; do
+      if (( ! $+functions[$tool] || ! $+widgets[$tool] )); then
+        print -- "[WARN] $tool is not loaded/registered; install fzf shell integration and restart Zsh."
+        (( warnings++ ))
+      fi
+    done
+    for tool in T R; do
+      binding=$(bindkey -M main "^$tool" 2>/dev/null)
+      if [[ $tool == T && $binding != *' fzf-file-widget' || $tool == R && $binding != *' fzf-history-widget' ]]; then
+        print -- "[WARN] Ctrl+$tool is not bound to fzf in the main keymap (possibly customized)."
+        (( warnings++ ))
+      fi
+    done
+  fi
   if [[ -n ${FZF_CTRL_T_OPTS:-} ]]; then
     # Parse option quoting only; do not execute a user's preview command.
     if ! (print -r -- "${(z)FZF_CTRL_T_OPTS}" >/dev/null) 2>/dev/null; then
