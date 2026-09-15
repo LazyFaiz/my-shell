@@ -25,7 +25,7 @@ class UpdateTests(unittest.TestCase):
     def test_tools_does_not_install_missing_software(self):
         result=subprocess.run(['bash',str(ROOT/'scripts/update.sh'),'tools'],env=self.env,capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
-        self.assertEqual(result.stdout.count('no managed user entry'),5)
+        self.assertEqual(result.stdout.count('no managed user entry'),7)
 
     def test_tealdeer_update_routes_managed_tldr_entry(self):
         repo=self.root/'repo'
@@ -47,6 +47,30 @@ class UpdateTests(unittest.TestCase):
         entry.parent.mkdir(parents=True)
         entry.symlink_to(Path(self.env['HOME'])/'.local/opt/zoxide-v0.10.0-fixture/bin/zoxide')
         result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'tools','zoxide'],
+                              env=self.env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual((Path(self.env['HOME'])/'updated').read_text(),'updated')
+
+    def test_starship_update_routes_managed_starship_entry(self):
+        repo=self.root/'repo'
+        shutil.copytree(ROOT/'scripts',repo/'scripts')
+        (repo/'scripts/install-starship.sh').write_text('#!/bin/bash\nprintf updated > "$HOME/updated"\n')
+        entry=Path(self.env['HOME'])/'.local/bin/starship'
+        entry.parent.mkdir(parents=True)
+        entry.symlink_to(Path(self.env['HOME'])/'.local/opt/starship-v1.26.0-fixture/bin/starship')
+        result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'tools','starship'],
+                              env=self.env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual((Path(self.env['HOME'])/'updated').read_text(),'updated')
+
+    def test_fzf_update_routes_managed_fzf_entry(self):
+        repo=self.root/'repo'
+        shutil.copytree(ROOT/'scripts',repo/'scripts')
+        (repo/'scripts/install-fzf.sh').write_text('#!/bin/bash\nprintf updated > "$HOME/updated"\n')
+        entry=Path(self.env['HOME'])/'.local/bin/fzf'
+        entry.parent.mkdir(parents=True)
+        entry.symlink_to(Path(self.env['HOME'])/'.local/opt/fzf-v0.74.4-fixture/bin/fzf')
+        result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'tools','fzf'],
                               env=self.env,capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual((Path(self.env['HOME'])/'updated').read_text(),'updated')

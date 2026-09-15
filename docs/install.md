@@ -15,30 +15,30 @@ Ubuntu 需启用 universe 仓库。先安装工具，Neovim、Zellij、Starship 
 ```bash
 sudo apt update
 sudo apt install -y zsh git curl ca-certificates file btop jq git-delta \
-  fzf fd-find bat eza ripgrep unzip 7zip tar gzip bzip2 xz-utils \
+  fd-find bat eza ripgrep unzip 7zip tar gzip bzip2 xz-utils \
   build-essential ffmpeg poppler-utils
 ```
 
-Debian 13 可直接安装 Starship 和 SVG 预览工具：
+Debian 13 可直接安装 SVG 预览工具：
 
 ```bash
-sudo apt install -y starship resvg
+sudo apt install -y resvg
 ```
 
 ### Arch Linux
 
 ```bash
 sudo pacman -Syu --needed zsh git curl ca-certificates file btop jq tealdeer git-delta \
-  fzf fd bat eza ripgrep unzip 7zip tar gzip bzip2 xz \
-  base-devel neovim zellij starship ffmpeg poppler resvg
+  fd bat eza ripgrep unzip 7zip tar gzip bzip2 xz \
+  base-devel neovim zellij ffmpeg poppler resvg
 ```
 
 ### Fedora
 
 ```bash
 sudo dnf install -y zsh git curl ca-certificates file btop jq tealdeer git-delta \
-  fzf fd-find bat eza ripgrep unzip 7zip tar gzip bzip2 xz \
-  gcc gcc-c++ make neovim zellij starship ffmpeg-free poppler-utils
+  fd-find bat eza ripgrep unzip 7zip tar gzip bzip2 xz \
+  gcc gcc-c++ make neovim zellij ffmpeg-free poppler-utils
 ```
 
 ### macOS
@@ -46,8 +46,8 @@ sudo dnf install -y zsh git curl ca-certificates file btop jq tealdeer git-delta
 先安装 [Homebrew](https://brew.sh/)。编译器来自 Xcode Command Line Tools；没有时执行 `xcode-select --install` 并完成弹窗安装。
 
 ```bash
-brew install zsh git file btop jq tealdeer git-delta fzf fd bat eza \
-  ripgrep unzip sevenzip neovim zellij starship ffmpeg poppler resvg
+brew install zsh git file btop jq tealdeer git-delta fd bat eza \
+  ripgrep unzip sevenzip neovim zellij ffmpeg poppler resvg
 ```
 
 ## 2. 检查 Neovim、Zellij、Starship
@@ -216,18 +216,31 @@ shell-doctor
 
 脚本从 GitHub 查询最新稳定版，支持 Linux/macOS x86_64、ARM64，下载并校验 SHA-256 后安装到用户目录，备份旧入口；不需要 Rust/Go，不卸载系统软件包。用 `zoxide --version` 检查，`z 目录关键词` 测试。后续 `shell-update tools zoxide` 更新，相同版本跳过下载。官方来源：[zoxide Releases](https://github.com/ajeetdsouza/zoxide/releases/latest)。
 
-### Linux：安装 Starship（软件源没有时）
+### Linux / macOS：Starship 和 fzf 纳入统一更新
 
-```bash
-bash <<'BASH'
-set -euo pipefail
-work=$(mktemp -d)
-trap 'rm -rf -- "$work"' EXIT
-mkdir -p "$HOME/.local/bin"
-curl -fsSL https://starship.rs/install.sh -o "$work/install-starship.sh"
-sh "$work/install-starship.sh" -y -b "$HOME/.local/bin"
-BASH
+两者均使用 GitHub 最新稳定版，支持 Linux/macOS x86_64、ARM64。安装器依赖 curl、jq、tar 和 SHA-256 工具，校验发布摘要并验证程序可运行后才切换命令入口；fzf 同时验证内置 Zsh/Fish 集成。
+
+已有服务器只需在更新仓库后接管一次：
+
+```sh
+cd ~/my-shell
+bash scripts/install-starship.sh
+bash scripts/install-fzf.sh
 ```
+
+也可用 `bash scripts/install-config.sh --starship --fzf`；Fish 用户可用 `bash scripts/install-fish-config.sh --config-only --starship --fzf`。
+
+安装位置为 `~/.local/opt/starship-版本-随机目录/`、`~/.local/opt/fzf-版本-随机目录/`，命令位于 `~/.local/bin/`。原有用户入口备份到相应 `*-entry-backup-*` 目录。保留 apt/brew 安装、原 `~/.fzf` 仓库、主题及自定义 fzf 选项，不修改它们的内容。
+
+重新启动当前 Shell（`exec zsh` 或 `exec fish`）后验证：
+
+```sh
+starship --version
+fzf --version
+shell-doctor
+```
+
+然后通过 `shell-update tools starship fzf`、`shell-update tools` 或 `shell-update all` 统一更新；同版本跳过下载。不运行安装器接管时，系统包或手工入口仍会被更新命令跳过，不自动覆盖。最新版 fzf 已内置两种 Shell 集成，无需再次运行 ~/.fzf/install。
 
 在继续下一步前，让当前 Bash 找到用户目录中的程序：
 
@@ -245,12 +258,12 @@ starship --version
 ```bash
 git clone https://github.com/LazyFaiz/my-shell.git ~/my-shell
 cd ~/my-shell
-bash scripts/install-config.sh --astronvim --zellij --yazi --tealdeer --zoxide --delta
+bash scripts/install-config.sh --astronvim --zellij --yazi --tealdeer --zoxide --starship --fzf --delta
 ```
 
 已有仓库时进入原目录执行 `git pull --ff-only`，不必重新克隆。
 
-脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` / `--zellij` / `--yazi` / `--tealdeer` / `--zoxide` 时额外从 GitHub 安装对应工具的最新稳定版到用户目录。它会：
+脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` / `--zellij` / `--yazi` / `--tealdeer` / `--zoxide` / `--starship` / `--fzf` 时额外从 GitHub 安装对应工具的最新稳定版到用户目录。它会：
 
 - 备份旧 Zsh 配置、入口文件；更新模块时保留 `local.zsh`。
 - 在 `~/.zshenv` 追加一次配置入口，保留原文件内容。

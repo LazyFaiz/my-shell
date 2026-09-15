@@ -3,13 +3,13 @@
 set -euo pipefail
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib/install-common.sh"
 if [[ ${1:-} == --help ]]; then
-  printf '%s\n' 'Usage: bash scripts/install-fish-config.sh [--config-only] [--astronvim] [--zellij] [--yazi] [--tealdeer] [--zoxide] [--delta]' \
+  printf '%s\n' 'Usage: bash scripts/install-fish-config.sh [--config-only] [--astronvim] [--zellij] [--yazi] [--tealdeer] [--zoxide] [--starship] [--fzf] [--delta]' \
     'Default: install latest stable Fish and zoxide; back up/install Fish configuration.' \
     '--config-only: skip default Fish/zoxide binary installations; requires Fish 4+ already installed.' \
     'Optional tools use the same stable-release installers as Zsh. No login-shell change.'
   exit 0
 fi
-config_only=0 astro=0 delta=0 zellij=0 yazi=0 tealdeer=0 zoxide=0
+config_only=0 astro=0 delta=0 zellij=0 yazi=0 tealdeer=0 zoxide=0 starship=0 fzf=0
 for arg in "$@"; do
   case "$arg" in
     --config-only) config_only=1 ;;
@@ -19,6 +19,8 @@ for arg in "$@"; do
     --yazi) yazi=1 ;;
     --tealdeer) tealdeer=1 ;;
     --zoxide) zoxide=1 ;;
+    --starship) starship=1 ;;
+    --fzf) fzf=1 ;;
     *) printf 'Unknown option: %s\n' "$arg" >&2; exit 2 ;;
   esac
 done
@@ -50,9 +52,9 @@ fish_version=$("$fish_bin" --no-config --version)
 }
 # Validate every module before modifying the installed configuration.
 for file in "$repo_dir"/fish/*.fish; do "$fish_bin" --no-config --no-execute "$file"; done
-for tool in neovim zellij yazi tealdeer zoxide; do
+for tool in neovim zellij yazi tealdeer zoxide starship fzf; do
   selected=0
-  case "$tool" in neovim) selected=$astro ;; zellij) selected=$zellij ;; yazi) selected=$yazi ;; tealdeer) selected=$tealdeer ;; zoxide) selected=$zoxide ;; esac
+  case "$tool" in neovim) selected=$astro ;; zellij) selected=$zellij ;; yazi) selected=$yazi ;; tealdeer) selected=$tealdeer ;; zoxide) selected=$zoxide ;; starship) selected=$starship ;; fzf) selected=$fzf ;; esac
   if (( selected )); then
     INSTALL_STEP="install-$tool"
     bash "$repo_dir/scripts/install-$tool.sh"

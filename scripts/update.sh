@@ -10,7 +10,7 @@ if [[ ${1:-} == --shell ]]; then
 fi
 case ${1:---help} in
   --help|-h)
-    printf '%s\n' 'Usage: bash scripts/update.sh [--shell zsh|fish] config|plugins|tools|all [neovim|zellij|yazi|tealdeer|zoxide|fish ...]' \
+    printf '%s\n' 'Usage: bash scripts/update.sh [--shell zsh|fish] config|plugins|tools|all [neovim|zellij|yazi|tealdeer|zoxide|starship|fzf|fish ...]' \
       'config: fast-forward repository and install configuration (preserves personal settings).' \
       'plugins: update installed plugins only.' \
       'tools: update managed tools only; optional tool names select a subset.' \
@@ -21,7 +21,7 @@ case ${1:---help} in
 esac
 if [[ "$mode" != tools && $# != 0 ]]; then echo 'Tool names are only valid with tools.' >&2; exit 2; fi
 for tool in "$@"; do
-  case "$tool" in neovim|zellij|yazi|tealdeer|zoxide|fish) ;; *) echo "Unknown tool: $tool" >&2; exit 2 ;; esac
+  case "$tool" in neovim|zellij|yazi|tealdeer|zoxide|starship|fzf|fish) ;; *) echo "Unknown tool: $tool" >&2; exit 2 ;; esac
 done
 if [[ "$mode" == config || "$mode" == all ]]; then
   INSTALL_STEP=repository-update
@@ -51,7 +51,7 @@ if [[ "$mode" == plugins ]]; then
   exit 0
 fi
 if [[ $# == 0 ]]; then
-  set -- neovim zellij yazi tealdeer zoxide
+  set -- neovim zellij yazi tealdeer zoxide starship fzf
   [[ $shell_kind != fish ]] || set -- "$@" fish
 fi
 for tool in "$@"; do

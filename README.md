@@ -33,6 +33,8 @@ Yazi 视频、PDF、SVG 和压缩包预览依赖（ffmpeg、Poppler、resvg、7-
 
 zoxide 也使用官方最新稳定版安装器：`bash scripts/install-zoxide.sh`，后续 `shell-update tools zoxide`。
 
+Starship、fzf 也支持最新稳定版安装与统一更新：首次运行 `bash scripts/install-starship.sh` 和 `bash scripts/install-fzf.sh`，之后 `shell-update tools starship fzf` 或 `shell-update all` 即可更新。
+
 ## 检查与更新
 
 加载新配置后使用 shell-doctor 检查当前会话；shell-update config、shell-update plugins、shell-update tools 分别更新配置、插件和已安装工具。shell-update all 按顺序更新，工具版本一致时跳过安装包下载。详见 [维护与恢复指南](docs/maintenance.md)。GitHub Actions 会在提交推送和 PR 时运行 Linux/macOS 检查。
@@ -71,6 +73,8 @@ exec zsh
 ├── scripts/install-zellij.sh # GitHub 最新稳定版 Zellij
 ├── scripts/install-yazi.sh   # GitHub 最新稳定版 Yazi + ya
 ├── scripts/install-tealdeer.sh # GitHub 最新稳定版 tldr
+├── scripts/install-starship.sh # GitHub 最新稳定版 Starship
+├── scripts/install-fzf.sh     # GitHub 最新稳定版 fzf
 ├── scripts/install-zoxide.sh # GitHub 最新稳定版 zoxide
 ├── fish/                # 原生 Fish 模块、同款 Starship 主题与中文说明
 └── zsh/

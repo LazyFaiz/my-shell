@@ -37,41 +37,25 @@ exec "$HOME/.local/bin/fish"
 ```sh
 sudo apt update
 sudo apt install -y git curl ca-certificates jq tar xz-utils unzip file \
-  btop git-delta fzf fd-find bat eza ripgrep 7zip \
+  btop git-delta fd-find bat eza ripgrep 7zip \
   ffmpeg poppler-utils build-essential
 
 git clone https://github.com/LazyFaiz/my-shell.git ~/my-shell
 cd ~/my-shell
-bash scripts/install-fish-config.sh --astronvim --zellij --yazi --tealdeer --delta
+bash scripts/install-fish-config.sh --astronvim --zellij --yazi --tealdeer --starship --fzf --delta
 ```
 
 其他 Linux 发行版与 macOS 的工具包名参见 [多系统安装指南](../docs/install.md)。Fish 本身由本安装器下载，无需使用发行版里的旧版 Fish；Linux 需要 xz，macOS 需要 unzip。
 
-Starship 安装：Debian 13 可用 `sudo apt install starship`，macOS 可用 `brew install starship`。Ubuntu 24.04 可在 Bash/Zsh 中运行下面整段；如果已在 Fish 中，先输入 `bash`：
+完整安装选项 `--starship --fzf` 会安装两者的 GitHub 最新稳定版，并纳入统一更新。已有环境接管可运行：
 
 ```sh
-bash <<'BASH'
-set -euo pipefail
-work=$(mktemp -d)
-trap 'rm -rf -- "$work"' EXIT
-curl -fsSL https://starship.rs/install.sh -o "$work/install.sh"
-mkdir -p "$HOME/.local/bin"
-sh "$work/install.sh" -y -b "$HOME/.local/bin"
-BASH
+bash scripts/install-fish-config.sh --config-only --starship --fzf
 ```
+
+也可分别运行 `bash scripts/install-starship.sh`、`bash scripts/install-fzf.sh`。保留原系统安装、~/.fzf 仓库、主题和自定义 fzf 设置；原用户命令入口会备份。最新版 fzf 自带 Fish 集成，重新启动 Fish 即可加载。迁移与恢复详见 [多系统安装指南](../docs/install.md)。
 
 SVG 预览依赖 resvg，Debian 13 可用 `sudo apt install resvg`，其他系统见安装指南。图片显示仍需 SSH 客户端/Zellij 支持，字体在本地终端选用 Nerd Font。
-
-Ubuntu 的旧版 fzf 可能低于 Yazi 所需的 0.53。已有新版可复用；否则在尚无 `~/.fzf` 目录时使用官方 Git 安装方式：
-
-```sh
-git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-bash ~/.fzf/install --bin
-mkdir -p ~/.local/bin
-ln -s "$HOME/.fzf/bin/fzf" "$HOME/.local/bin/fzf"
-```
-
-若已有这些路径，先检查 `fzf --version` 和现有安装，不要覆盖未知文件。通过 Git 安装的 fzf 后续仍由其原安装方式更新。
 
 进入 Fish：
 
@@ -94,7 +78,7 @@ ll
 
 `bash scripts/install-fish.sh` 只安装 Fish 程序。Linux x86_64/ARM64 使用官方自包含 tar.xz；macOS Intel/Apple Silicon 使用官方通用 app 包中的程序及资源，不运行 GUI 安装程序。下载校验 GitHub 发布 SHA-256 摘要，验证程序与内置函数后切换用户入口。版本与三个命令入口都一致时跳过下载。
 
-`bash scripts/install-fish-config.sh` 默认安装最新稳定版 Fish、zoxide 并写入配置。支持与 Zsh 相同的 `--astronvim`、`--zellij`、`--yazi`、`--tealdeer`、`--zoxide`、`--delta`。使用 `--config-only` 时跳过默认的 Fish/zoxide 程序下载（显式添加 `--zoxide` 仍会安装 zoxide），要求已安装 Fish 4+；不要用它检查是否为最新版本。
+`bash scripts/install-fish-config.sh` 默认安装最新稳定版 Fish、zoxide 并写入配置。支持与 Zsh 相同的 `--astronvim`、`--zellij`、`--yazi`、`--tealdeer`、`--zoxide`、`--starship`、`--fzf`、`--delta`。使用 `--config-only` 时跳过默认的 Fish/zoxide 程序下载（显式添加 `--zoxide` 仍会安装 zoxide），要求已安装 Fish 4+；不要用它检查是否为最新版本。
 
 | 路径（默认 XDG） | 用途 |
 | --- | --- |
@@ -154,6 +138,7 @@ shell-update config          # 只更新并安装 Fish 配置，不写 Zsh
 shell-update tools           # 更新已由仓库管理的工具和 Fish
 shell-update tools fish      # 只更新 Fish 最新稳定版
 shell-update tools tealdeer  # 只更新 tldr
+shell-update tools starship fzf  # 更新主题程序与模糊搜索工具
 shell-update tools zoxide    # 只更新 zoxide 最新稳定版
 shell-update all             # Fish 配置 + 已管理工具
 exec fish

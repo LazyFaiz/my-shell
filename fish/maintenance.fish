@@ -58,7 +58,7 @@ function shell-doctor --description 'Check the current Fish session (no network)
         echo '[WARN] ~/.local/bin is not in PATH.'
         set warnings (math $warnings + 1)
     end
-    for tool in fish nvim zellij yazi ya tldr zoxide
+    for tool in fish nvim zellij yazi ya tldr zoxide starship fzf
         set -l resolved_path (command -s $tool)
         if test -x "$HOME/.local/bin/$tool"; and test "$resolved_path" != "$HOME/.local/bin/$tool"
             echo "[WARN] $tool user installation is shadowed by PATH."

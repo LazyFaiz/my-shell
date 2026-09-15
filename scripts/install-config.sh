@@ -4,13 +4,15 @@ set -euo pipefail
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib/install-common.sh"
 
 if [[ ${1:-} == --help ]]; then
-  printf '%s\n' 'Usage: bash scripts/install-config.sh [--astronvim] [--zellij] [--yazi] [--tealdeer] [--zoxide] [--delta]' \
+  printf '%s\n' 'Usage: bash scripts/install-config.sh [--astronvim] [--zellij] [--yazi] [--tealdeer] [--zoxide] [--starship] [--fzf] [--delta]' \
     'Backs up and installs Zsh configuration for the current user.' \
     '--astronvim: install latest stable Neovim; add AstroNvim only when nvim config is absent.' \
     '--zellij: install latest stable Zellij from GitHub.' \
     '--yazi: install latest stable Yazi and ya from GitHub.' \
     '--tealdeer: install latest stable tealdeer (tldr) from GitHub.' \
     '--zoxide: install latest stable zoxide from GitHub.' \
+    '--starship: install latest stable Starship from GitHub.' \
+    '--fzf: install latest stable fzf with bundled shell integration.' \
     '--delta: configure Git to use delta, backing up existing Git config.'
   exit 0
 fi
@@ -20,6 +22,8 @@ zellij=0
 yazi=0
 tealdeer=0
 zoxide=0
+starship=0
+fzf=0
 for arg in "$@"; do
   case "$arg" in
     --astronvim) astro=1 ;;
@@ -28,6 +32,8 @@ for arg in "$@"; do
     --yazi) yazi=1 ;;
     --tealdeer) tealdeer=1 ;;
     --zoxide) zoxide=1 ;;
+    --starship) starship=1 ;;
+    --fzf) fzf=1 ;;
     *) printf 'Unknown option: %s\n' "$arg" >&2; exit 2 ;;
   esac
 done
@@ -79,6 +85,16 @@ if (( zoxide )); then
   export PATH="$HOME/.local/bin:$PATH"
   hash -r
 fi
+for tool in starship fzf; do
+  selected=0
+  case "$tool" in starship) selected=$starship ;; fzf) selected=$fzf ;; esac
+  if (( selected )); then
+    INSTALL_STEP="install-$tool"
+    bash "$repo_dir/scripts/install-$tool.sh"
+    export PATH="$HOME/.local/bin:$PATH"
+    hash -r
+  fi
+done
 INSTALL_STEP=backup-config
 backup_dir=$(mktemp -d "$XDG_STATE_HOME/my-shell/backups/install-XXXXXXXX")
 backup() {
