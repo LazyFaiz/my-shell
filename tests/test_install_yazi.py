@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import shutil
 import zipfile
 import tempfile
 import unittest
@@ -136,6 +137,38 @@ shutil.copyfile(pathlib.Path(os.environ['FIXTURE'])/source,args[args.index('-o')
         self.assertEqual(second.returncode, 0, second.stderr)
         self.assertIn('archive download skipped', second.stdout)
         self.assertEqual(self.entry.resolve(), original)
+
+    def test_same_release_repairs_fd_without_downloading(self):
+        # Exclude the host's fd/fdfind so this also runs on machines with fd installed.
+        support=self.root/'support'
+        support.mkdir()
+        for name in ('bash','python3','dirname','jq','unzip','file','sha256sum','shasum',
+                     'mktemp','sed','readlink','cat','rm','mkdir','install','cp','ln','mv','rmdir'):
+            resolved=shutil.which(name)
+            if resolved: (support/name).symlink_to(resolved)
+        self.env['PATH']=str(self.bin)+':'+str(support)
+        self.fixture()
+        first=self.run_installer()
+        self.assertEqual(first.returncode,0,first.stderr)
+        original=self.entry.resolve()
+        fd=self.entry.parent/'fd'
+        self.assertFalse(fd.exists())
+        self.executable('fdfind','#!/bin/sh\nexit 0\n')
+        (self.root/'ARCHIVE_FORBIDDEN').touch()
+        for attempt in range(2):
+            with self.subTest(attempt=attempt):
+                result=self.run_installer()
+                self.assertEqual(result.returncode,0,result.stderr)
+                self.assertIn('archive download skipped',result.stdout)
+                self.assertEqual(self.entry.resolve(),original)
+                self.assertTrue(fd.is_symlink())
+                self.assertEqual(fd.resolve(),self.bin/'fdfind')
+                fd.unlink()
+        # Never replace an existing user entry, including a dangling symlink.
+        fd.symlink_to(self.root/'missing-user-command')
+        result=self.run_installer()
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(os.readlink(fd),str(self.root/'missing-user-command'))
 
     def test_missing_ya_reinstalls_instead_of_skipping(self):
         self.fixture()

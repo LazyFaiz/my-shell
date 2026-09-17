@@ -28,6 +28,16 @@ elif command -v shasum >/dev/null; then
 else
   echo 'Missing SHA-256 tool (sha256sum or shasum).' >&2; exit 1
 fi
+ensure_fd_compatibility() {
+  # Yazi launches external fd; a Zsh alias alone does not satisfy that dependency.
+  export PATH="$HOME/.local/bin:$PATH"
+  if ! command -v fd >/dev/null && command -v fdfind >/dev/null; then
+    if [[ ! -e "$HOME/.local/bin/fd" && ! -L "$HOME/.local/bin/fd" ]]; then
+      ln -s "$(command -v fdfind)" "$HOME/.local/bin/fd"
+    fi
+  fi
+}
+
 work=$(mktemp -d)
 INSTALL_STEP=release-metadata
 github_latest_release sxyazi/yazi "$work/release.json"
@@ -36,6 +46,8 @@ version=$(jq -er '.tag_name' "$work/release.json")
 [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Unexpected stable release tag.' >&2; exit 1; }
 asset="yazi-$arch-$system"
 if release_is_current "$version" "$asset" yazi ya; then
+  INSTALL_STEP=fd-compatibility
+  ensure_fd_compatibility
   echo "Already current: $version ($asset); archive download skipped."
   exit 0
 fi
@@ -78,13 +90,8 @@ for binary in yazi ya; do
   mv -f "$stage/$binary" "$HOME/.local/bin/$binary"
 done
 rmdir "$stage"
-# Yazi launches external fd; a Zsh alias alone does not satisfy that dependency.
-export PATH="$HOME/.local/bin:$PATH"
-if ! command -v fd >/dev/null && command -v fdfind >/dev/null; then
-  if [[ ! -e "$HOME/.local/bin/fd" && ! -L "$HOME/.local/bin/fd" ]]; then
-    ln -s "$(command -v fdfind)" "$HOME/.local/bin/fd"
-  fi
-fi
+INSTALL_STEP=fd-compatibility
+ensure_fd_compatibility
 printf 'Installed Yazi %s (yazi + ya) at %s\n' "$version" "$target"
 printf 'Previous command entries backed up: %s\n' "$backup_dir"
 echo 'Restart Zsh, then run y to browse and follow the directory on exit.'

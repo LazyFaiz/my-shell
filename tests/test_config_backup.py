@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import tempfile
 import unittest
@@ -81,6 +82,27 @@ class ConfigBackupTests(unittest.TestCase):
     @unittest.skipUnless(FISH,"Fish required")
     def test_fish_linked_module(self):
         self.check_snapshot("fish",False)
+
+    @unittest.skipUnless(FISH,"Fish required")
+    def test_fish_entry_preserves_private_permissions(self):
+        config=Path(self.env["XDG_CONFIG_HOME"])/"fish"
+        config.mkdir(parents=True)
+        entry=config/"config.fish"
+        original="# private user configuration\n"
+        for linked in (False,True):
+            with self.subTest(linked=linked):
+                if entry.exists(): entry.unlink()
+                source=self.root/"private-config" if linked else entry
+                source.write_text(original)
+                source.chmod(0o600)
+                if linked: entry.symlink_to(source)
+                result=subprocess.run(["bash",str(ROOT/"scripts/install-fish-config.sh"),"--config-only"],
+                                      env=self.env,capture_output=True,text=True,umask=0o022)
+                self.assertEqual(result.returncode,0,result.stderr)
+                self.assertEqual(stat.S_IMODE(entry.stat().st_mode),0o600)
+                self.assertTrue(entry.read_text().startswith(original))
+                self.assertEqual(entry.read_text().count("# BEGIN my-shell fish"),1)
+                if linked: self.assertEqual(source.read_text(),original)
 
     def test_failed_snapshot_stops_before_overwriting_config(self):
         config=Path(self.env["XDG_CONFIG_HOME"])/"zsh"

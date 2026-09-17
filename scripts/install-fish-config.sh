@@ -74,7 +74,10 @@ printf '%s\n' "$repo_dir" > "$module_dir/repository"
 # Preserve existing config contents, universal variables, conf.d and local.fish.
 if ! grep -Fqx '# BEGIN my-shell fish' "$config_dir/config.fish" 2>/dev/null; then
   stage=$(mktemp -d "$config_dir/.my-shell-entry-XXXXXXXX")
-  if [[ -f "$config_dir/config.fish" ]]; then cat "$config_dir/config.fish" > "$stage/config.fish"; fi
+  # Dereference an existing entry while preserving its private permissions.
+  if [[ -f "$config_dir/config.fish" ]]; then
+    cp -pL "$config_dir/config.fish" "$stage/config.fish"
+  fi
   cat >> "$stage/config.fish" <<'FISH'
 
 # BEGIN my-shell fish
