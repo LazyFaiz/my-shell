@@ -42,7 +42,7 @@ sudo apt install -y git curl ca-certificates jq tar xz-utils unzip file \
 
 git clone https://github.com/LazyFaiz/my-shell.git ~/my-shell
 cd ~/my-shell
-bash scripts/install-fish-config.sh --astronvim --zellij --yazi --tealdeer --starship --fzf --delta
+bash scripts/install-fish-config.sh --astronvim --zellij --yazi --tealdeer --starship --fzf --dust --duf --procs --delta
 ```
 
 其他 Linux 发行版与 macOS 的工具包名参见 [多系统安装指南](../docs/install.md)。Fish 本身由本安装器下载，无需使用发行版里的旧版 Fish；Linux 需要 xz，macOS 需要 unzip。
@@ -78,7 +78,7 @@ ll
 
 `bash scripts/install-fish.sh` 只安装 Fish 程序。Linux x86_64/ARM64 使用官方自包含 tar.xz；macOS Intel/Apple Silicon 使用官方通用 app 包中的程序及资源，不运行 GUI 安装程序。下载校验 GitHub 发布 SHA-256 摘要，验证程序与内置函数后切换用户入口。版本与三个命令入口都一致时跳过下载。
 
-`bash scripts/install-fish-config.sh` 默认安装最新稳定版 Fish、zoxide 并写入配置。支持与 Zsh 相同的 `--astronvim`、`--zellij`、`--yazi`、`--tealdeer`、`--zoxide`、`--starship`、`--fzf`、`--delta`。使用 `--config-only` 时跳过默认的 Fish/zoxide 程序下载（显式添加 `--zoxide` 仍会安装 zoxide），要求已安装 Fish 4+；不要用它检查是否为最新版本。
+`bash scripts/install-fish-config.sh` 默认安装最新稳定版 Fish、zoxide 并写入配置。支持与 Zsh 相同的 `--astronvim`、`--zellij`、`--yazi`、`--tealdeer`、`--zoxide`、`--starship`、`--fzf`、`--dust`、`--duf`、`--procs`、`--delta`。使用 `--config-only` 时跳过默认的 Fish/zoxide 程序下载（显式添加 `--zoxide` 仍会安装 zoxide），要求已安装 Fish 4+；不要用它检查是否为最新版本。
 
 | 路径（默认 XDG） | 用途 |
 | --- | --- |
@@ -179,3 +179,15 @@ root 去掉命令中的 sudo。下次登录生效；先保留当前 SSH 会话�
 配置备份会保存软链接指向的实际内容（含目录内的链接），形成独立快照；恢复得到普通文件/目录，不会自动重建原 dotfiles 链接关系。嵌套的断链或循环链接导致备份失败时，会在写入配置前停止，请先修复链接再重试。此规则仅用于配置备份，程序入口备份仍保留软链接。
 
 诊断包含 eza、两段式/三段式 fzf 版本号，并检查 fzf 文件和历史搜索函数是否均已加载。原生 Fish 功能无需使用 Zsh 的插件重装命令。
+
+
+## 磁盘与进程工具
+
+支持 dust（目录占用）、duf（磁盘容量）、procs（进程查询），直接使用同名命令，保留原有 `du`、`df`、`ps`。
+
+```sh
+bash scripts/install-fish-config.sh --config-only --dust --duf --procs
+shell-update tools dust duf procs
+```
+
+首次安装后重启当前 Shell。三个工具均使用官方最新稳定版、校验 SHA-256、备份旧入口，已纳入 `shell-doctor` 和统一更新。安装依赖、独立安装与恢复方式见 [安装指南](../docs/install.md#dustduf-与-procs)。

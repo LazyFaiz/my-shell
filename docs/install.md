@@ -2,7 +2,7 @@
 
 本页是 Zsh 安装流程；Fish 最新稳定版及对应配置请使用 [Fish 安装指南](../fish/README.md)，两者可并存。
 
-适用：Debian 13、Ubuntu 24.04 及以上、Arch Linux、Fedora、macOS（Homebrew）。WSL 按内部 Linux 发行版选择命令。其他版本的软件源可能缺包；不要混用不同发行版的软件源。以下步骤安装当前用户环境，本页不安装 Go、Go 工具或 Fish。
+适用：Debian 13、Ubuntu 24.04 及以上、Arch Linux、Fedora、macOS（Homebrew）。WSL 按内部 Linux 发行版选择命令。其他版本的软件源可能缺包；不要混用不同发行版的软件源。以下步骤安装当前用户环境，本页不安装 Go 工具链或 Fish。
 
 ## 1. 安装系统依赖
 
@@ -251,6 +251,33 @@ zellij --version
 starship --version
 ```
 
+## dust、duf 与 procs
+
+三个工具均可直接使用，不覆盖 `du`、`df`、`ps`：
+
+```sh
+dust .       # 查看当前目录的空间占用
+duf          # 查看各文件系统容量与剩余空间
+procs        # 查看进程
+```
+
+在仓库中安装最新稳定版（按所用 Shell 选择一条）：
+
+```sh
+# Zsh
+bash scripts/install-config.sh --dust --duf --procs
+# 已有 Fish 4+，仅更新配置并安装这三个工具
+bash scripts/install-fish-config.sh --config-only --dust --duf --procs
+```
+
+也可分别执行 `bash scripts/install-dust.sh`、`bash scripts/install-duf.sh`、`bash scripts/install-procs.sh`，只安装程序。重启当前 Shell 后，运行 `shell-doctor` 检查；以后使用 `shell-update tools dust duf procs` 更新。`shell-update tools` / `all` 也会更新已由本仓库管理的这三个工具。
+
+支持 Linux/macOS 的 x86_64、ARM64；需要 curl、jq、SHA-256 工具，dust/duf 另需 tar，procs 另需 unzip。下载官方最新稳定版二进制，不需要安装 Go/Rust 工具链。安装器校验发布摘要并检查程序运行，版本一致时跳过下载。
+
+程序位于 `~/.local/opt/<工具>-版本-随机目录/`，入口位于 `~/.local/bin/`，旧入口备份在 `~/.local/opt/<工具>-entry-backup-*/`。恢复时按维护指南恢复对应入口并保留其指向的版本目录。系统包不会被卸载，未经安装器接管的入口不会被统一更新自动覆盖。
+
+官方来源：[dust](https://github.com/bootandy/dust/releases/latest)、[duf](https://github.com/muesli/duf/releases/latest)、[procs](https://github.com/dalance/procs/releases/latest)。
+
 ## 3. 安装仓库配置
 
 在目标账号下运行；root 执行会配置 root，不会配置其他用户。普通用户只在安装系统软件时使用 sudo，以下脚本不加 sudo。
@@ -258,12 +285,12 @@ starship --version
 ```bash
 git clone https://github.com/LazyFaiz/my-shell.git ~/my-shell
 cd ~/my-shell
-bash scripts/install-config.sh --astronvim --zellij --yazi --tealdeer --zoxide --starship --fzf --delta
+bash scripts/install-config.sh --astronvim --zellij --yazi --tealdeer --zoxide --starship --fzf --dust --duf --procs --delta
 ```
 
 已有仓库时进入原目录执行 `git pull --ff-only`，不必重新克隆。
 
-脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` / `--zellij` / `--yazi` / `--tealdeer` / `--zoxide` / `--starship` / `--fzf` 时额外从 GitHub 安装对应工具的最新稳定版到用户目录。它会：
+脚本支持 Linux/macOS 自带 Bash，使用现有的 Zsh、Git 和 delta；启用 `--astronvim` / `--zellij` / `--yazi` / `--tealdeer` / `--zoxide` / `--starship` / `--fzf` / `--dust` / `--duf` / `--procs` 时额外从 GitHub 安装对应工具的最新稳定版到用户目录。它会：
 
 - 备份旧 Zsh 配置、入口文件；更新模块时保留 `local.zsh`。
 - 在 `~/.zshenv` 追加一次配置入口，保留原文件内容。

@@ -25,7 +25,7 @@ class UpdateTests(unittest.TestCase):
     def test_tools_does_not_install_missing_software(self):
         result=subprocess.run(['bash',str(ROOT/'scripts/update.sh'),'tools'],env=self.env,capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
-        self.assertEqual(result.stdout.count('no managed user entry'),7)
+        self.assertEqual(result.stdout.count('no managed user entry'),10)
 
     def test_tealdeer_update_routes_managed_tldr_entry(self):
         repo=self.root/'repo'
@@ -59,6 +59,42 @@ class UpdateTests(unittest.TestCase):
         entry.parent.mkdir(parents=True)
         entry.symlink_to(Path(self.env['HOME'])/'.local/opt/starship-v1.26.0-fixture/bin/starship')
         result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'tools','starship'],
+                              env=self.env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual((Path(self.env['HOME'])/'updated').read_text(),'updated')
+
+    def test_dust_update_routes_managed_dust_entry(self):
+        repo=self.root/'repo'
+        shutil.copytree(ROOT/'scripts',repo/'scripts')
+        (repo/'scripts/install-dust.sh').write_text('#!/bin/bash\nprintf updated > "$HOME/updated"\n')
+        entry=Path(self.env['HOME'])/'.local/bin/dust'
+        entry.parent.mkdir(parents=True)
+        entry.symlink_to(Path(self.env['HOME'])/'.local/opt/dust-v1.26.0-fixture/bin/dust')
+        result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'tools','dust'],
+                              env=self.env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual((Path(self.env['HOME'])/'updated').read_text(),'updated')
+
+    def test_duf_update_routes_managed_duf_entry(self):
+        repo=self.root/'repo'
+        shutil.copytree(ROOT/'scripts',repo/'scripts')
+        (repo/'scripts/install-duf.sh').write_text('#!/bin/bash\nprintf updated > "$HOME/updated"\n')
+        entry=Path(self.env['HOME'])/'.local/bin/duf'
+        entry.parent.mkdir(parents=True)
+        entry.symlink_to(Path(self.env['HOME'])/'.local/opt/duf-v1.26.0-fixture/bin/duf')
+        result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'tools','duf'],
+                              env=self.env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual((Path(self.env['HOME'])/'updated').read_text(),'updated')
+
+    def test_procs_update_routes_managed_procs_entry(self):
+        repo=self.root/'repo'
+        shutil.copytree(ROOT/'scripts',repo/'scripts')
+        (repo/'scripts/install-procs.sh').write_text('#!/bin/bash\nprintf updated > "$HOME/updated"\n')
+        entry=Path(self.env['HOME'])/'.local/bin/procs'
+        entry.parent.mkdir(parents=True)
+        entry.symlink_to(Path(self.env['HOME'])/'.local/opt/procs-v1.26.0-fixture/bin/procs')
+        result=subprocess.run(['bash',str(repo/'scripts/update.sh'),'tools','procs'],
                               env=self.env,capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual((Path(self.env['HOME'])/'updated').read_text(),'updated')

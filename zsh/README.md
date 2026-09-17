@@ -142,3 +142,15 @@ exec zsh
 同一插件的并发安装由锁目录阻止。若进程被强制终止，确认没有安装任务运行后，按错误提示用 `rmdir` 删除对应的空锁目录，再重试；不要删除整个插件目录。
 
 Ctrl+F 支持多选（fzf 中用 Tab 选择），结果按 NUL 分隔后逐个转义插入，保留文件名中的空格、引号及换行；取消选择时不改命令行。
+
+
+## 磁盘与进程工具
+
+支持 dust（目录占用）、duf（磁盘容量）、procs（进程查询），直接使用同名命令，保留原有 `du`、`df`、`ps`。
+
+```sh
+bash scripts/install-config.sh --dust --duf --procs
+shell-update tools dust duf procs
+```
+
+首次安装后重启当前 Shell。三个工具均使用官方最新稳定版、校验 SHA-256、备份旧入口，已纳入 `shell-doctor` 和统一更新。安装依赖、独立安装与恢复方式见 [安装指南](../docs/install.md#dustduf-与-procs)。

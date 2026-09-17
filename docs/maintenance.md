@@ -38,7 +38,7 @@ shell-doctor
 ```zsh
 shell-update config          # git pull --ff-only，更新并安装 Zsh 配置
 shell-update plugins         # 更新已安装的四个 Zsh 插件
-shell-update tools           # 更新本仓库管理的 Neovim、Zellij、Yazi、tealdeer、zoxide、Starship、fzf
+shell-update tools           # 更新本仓库管理的 Neovim、Zellij、Yazi、tealdeer、zoxide、Starship、fzf、dust、duf、procs
 shell-update tools starship fzf  # 更新仓库管理的 Starship 和 fzf
 shell-update tools zoxide    # 只更新仓库管理的 zoxide
 shell-update tools tealdeer  # 只更新仓库管理的 tldr
@@ -140,3 +140,5 @@ CI 查询 GitHub 最新版本时使用工作流自带的只读 GITHUB_TOKEN，�
 Zsh 插件安装失败时可直接重试首次安装；已有不完整目录用 `zplugin-reinstall 插件名` 修复，下载成功后才备份并替换旧目录。详细重装与锁目录恢复说明见 [Zsh 指南](../zsh/README.md)。
 
 Starship/fzf 需先运行对应安装器接管一次，之后 tools/all 才会更新它们。旧用户入口分别保存在 `starship-entry-backup-*`、`fzf-entry-backup-*` 中，恢复方法与 Zellij 相同。恢复为旧 ~/.fzf 软链接时需保留原 ~/.fzf 目录。操作后重新打开 Shell 以加载新程序生成的集成。
+
+磁盘与进程工具支持 `shell-update tools dust duf procs`；首次安装分别使用 `scripts/install-dust.sh`、`scripts/install-duf.sh`、`scripts/install-procs.sh`。旧命令入口备份为 `dust-entry-backup-*`、`duf-entry-backup-*`、`procs-entry-backup-*`，按上述入口恢复方法处理。

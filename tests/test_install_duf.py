@@ -7,23 +7,22 @@ import json
 import os
 from pathlib import Path
 import subprocess
-import shutil
-import zipfile
+import tarfile
 import tempfile
 import unittest
 
-SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/install-yazi.sh'
+SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/install-duf.sh'
 
 
-class YaziInstallerTests(unittest.TestCase):
+class DufInstallerTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='yazi-installer-test-')
+        self.temp = tempfile.TemporaryDirectory(prefix='duf-installer-test-')
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.home = self.root / 'home with spaces'
         self.bin = self.root / 'mocks'
         self.bin.mkdir()
-        self.entry = self.home / '.local/bin/yazi'
+        self.entry = self.home / '.local/bin/duf'
         self.entry.parent.mkdir(parents=True)
         self.entry.write_text('old entry\n')
         self.env = os.environ.copy()
@@ -35,7 +34,7 @@ args=sys.argv[1:]
 if os.environ.get('DOWNLOAD_FAIL'): sys.exit(22)
 url=next(x for x in args if x.startswith('https://'))
 if not url.endswith('/latest') and (pathlib.Path(os.environ['FIXTURE'])/'ARCHIVE_FORBIDDEN').exists(): sys.exit(99)
-source='release.json' if url.endswith('/latest') else 'archive.zip'
+source='release.json' if url.endswith('/latest') else 'archive.tar.gz'
 shutil.copyfile(pathlib.Path(os.environ['FIXTURE'])/source,args[args.index('-o')+1])
 ''')
 
@@ -48,20 +47,20 @@ shutil.copyfile(pathlib.Path(os.environ['FIXTURE'])/source,args[args.index('-o')
                 bad_digest=False, broken_binary=False):
         self.executable('uname', '#!/bin/sh\ncase "$1" in\n-s) echo ' + system +
                         ';;\n-m) echo ' + machine + ';;\nesac\n')
-        platform = 'unknown-linux-musl' if system == 'Linux' else 'apple-darwin'
-        arch = 'aarch64' if machine in ('aarch64', 'arm64') else 'x86_64'
-        name = f'yazi-{arch}-{platform}'
-        program = b'#!/bin/sh\nexit 1\n' if broken_binary else b'#!/bin/sh\nprintf "Yazi\n    Version: 0.12.5 (fixture)\n    Rustc: 1.98.0\n"\n'
-        archive = self.root / 'archive.zip'
-        with zipfile.ZipFile(archive, 'w') as zip_file:
-            for binary in ('yazi', 'ya'):
-                info = zipfile.ZipInfo(name + '/' + binary)
-                info.external_attr = 0o100755 << 16
-                zip_file.writestr(info, program)
+        platform = 'linux' if system == 'Linux' else 'darwin'
+        arch = 'arm64' if machine in ('aarch64', 'arm64') else 'x86_64'
+        name = f'duf_1.26.0_{platform}_{arch}'
+        program = b'#!/bin/sh\nexit 1\n' if broken_binary else b'#!/bin/sh\necho "duf v1.26.0"\n'
+        archive = self.root / 'archive.tar.gz'
+        with tarfile.open(archive, 'w:gz') as tar:
+            info = tarfile.TarInfo('duf')
+            info.mode = 0o755
+            info.size = len(program)
+            tar.addfile(info, io.BytesIO(program))
         digest = '0' * 64 if bad_digest else hashlib.sha256(archive.read_bytes()).hexdigest()
-        release = {'tag_name': 'v0.12.5', 'draft': False, 'prerelease': prerelease,
-                   'assets': [{'name': name + '.zip', 'digest': 'sha256:' + digest,
-                    'browser_download_url': f'https://github.com/sxyazi/yazi/releases/download/v0.12.5/{name}.zip'}]}
+        release = {'tag_name': 'v1.26.0', 'draft': False, 'prerelease': prerelease,
+                   'assets': [{'name': name + '.tar.gz', 'digest': 'sha256:' + digest,
+                    'browser_download_url': f'https://github.com/muesli/duf/releases/download/v1.26.0/{name}.tar.gz'}]}
         (self.root / 'release.json').write_text(json.dumps(release))
 
     def run_installer(self):
@@ -77,8 +76,7 @@ shutil.copyfile(pathlib.Path(os.environ['FIXTURE'])/source,args[args.index('-o')
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertTrue(self.entry.is_symlink())
                 self.assertTrue(self.entry.resolve().is_file())
-                self.assertTrue((self.entry.parent / 'ya').resolve().is_file())
-        backups = list((self.home / '.local/opt').glob('yazi-entry-backup-*/yazi'))
+        backups = list((self.home / '.local/opt').glob('duf-entry-backup-*/duf'))
         self.assertEqual(len(backups), 4)
         self.assertTrue(any(p.read_text() == 'old entry\n' for p in backups))
 
@@ -111,7 +109,7 @@ shutil.copyfile(pathlib.Path(os.environ['FIXTURE'])/source,args[args.index('-o')
         self.assertEqual((self.entry / 'keep').read_text(), 'keep')
 
 
-    def test_main_installer_yazi_option(self):
+    def test_main_installer_duf_option(self):
         self.fixture()
         self.executable('zsh', '#!/bin/sh\nexit 0\n')
         for key in ('XDG_CONFIG_HOME', 'XDG_STATE_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME'):
@@ -119,7 +117,7 @@ shutil.copyfile(pathlib.Path(os.environ['FIXTURE'])/source,args[args.index('-o')
         config = self.home / '.config/zsh'
         config.mkdir(parents=True)
         (config / 'local.zsh').write_text('# preserved\n')
-        result = subprocess.run(['bash', str(SCRIPT.with_name('install-config.sh')), '--yazi'],
+        result = subprocess.run(['bash', str(SCRIPT.with_name('install-config.sh')), '--duf'],
                                 env=self.env, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(self.entry.is_symlink())
@@ -138,52 +136,20 @@ shutil.copyfile(pathlib.Path(os.environ['FIXTURE'])/source,args[args.index('-o')
         self.assertIn('archive download skipped', second.stdout)
         self.assertEqual(self.entry.resolve(), original)
 
-    def test_same_release_repairs_fd_without_downloading(self):
-        # Exercise symlinked parent paths on Linux too (macOS /var -> /private/var).
-        alias=self.root/'mock-alias'
-        alias.symlink_to(self.bin,target_is_directory=True)
-        self.bin=alias
-        # Exclude the host's fd/fdfind so this also runs on machines with fd installed.
-        support=self.root/'support'
-        support.mkdir()
-        for name in ('bash','python3','dirname','jq','unzip','file','sha256sum','shasum',
-                     'mktemp','sed','readlink','cat','rm','mkdir','install','cp','ln','mv','rmdir'):
-            resolved=shutil.which(name)
-            if resolved: (support/name).symlink_to(resolved)
-        self.env['PATH']=str(self.bin)+':'+str(support)
+    def test_existing_external_symlink_is_backed_up(self):
         self.fixture()
-        first=self.run_installer()
-        self.assertEqual(first.returncode,0,first.stderr)
-        original=self.entry.resolve()
-        fd=self.entry.parent/'fd'
-        self.assertFalse(fd.exists())
-        self.executable('fdfind','#!/bin/sh\nexit 0\n')
-        (self.root/'ARCHIVE_FORBIDDEN').touch()
-        for attempt in range(2):
-            with self.subTest(attempt=attempt):
-                result=self.run_installer()
-                self.assertEqual(result.returncode,0,result.stderr)
-                self.assertIn('archive download skipped',result.stdout)
-                self.assertEqual(self.entry.resolve(),original)
-                self.assertTrue(fd.is_symlink())
-                self.assertTrue(fd.samefile(self.bin/'fdfind'))
-                fd.unlink()
-        # Never replace an existing user entry, including a dangling symlink.
-        fd.symlink_to(self.root/'missing-user-command')
+        vendor=self.root/'previous-duf'
+        vendor.write_text('previous installation')
+        self.entry.unlink()
+        self.entry.symlink_to(vendor)
         result=self.run_installer()
         self.assertEqual(result.returncode,0,result.stderr)
-        self.assertEqual(os.readlink(fd),str(self.root/'missing-user-command'))
-
-    def test_missing_ya_reinstalls_instead_of_skipping(self):
-        self.fixture()
-        first=self.run_installer()
-        self.assertEqual(first.returncode,0,first.stderr)
-        original=self.entry.resolve()
-        (self.entry.parent/'ya').unlink()
-        result=self.run_installer()
-        self.assertEqual(result.returncode,0,result.stderr)
-        self.assertNotEqual(self.entry.resolve(),original)
-        self.assertTrue((self.entry.parent/'ya').is_file())
+        self.assertEqual(vendor.read_text(),'previous installation')
+        backups=list((self.home/'.local/opt').glob('duf-entry-backup-*/duf'))
+        self.assertEqual(len(backups),1)
+        self.assertTrue(backups[0].is_symlink())
+        self.assertEqual(os.readlink(backups[0]),str(vendor))
+        self.assertNotEqual(self.entry.resolve(),vendor.resolve())
 
     def test_error_reports_phase(self):
         self.fixture(bad_digest=True)

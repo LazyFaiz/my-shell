@@ -3,7 +3,7 @@ function shell-doctor --description 'Check the current Fish session (no network)
     printf 'Fish %s | %s %s\n' "$version" (uname -s) (uname -m)
     printf 'Config: %s\n' "$MY_SHELL_FISH_DIR"
     echo '--- Commands and versions ---'
-    for tool in fish git starship fzf fd bat eza nvim zellij yazi ya btop jq tldr delta zoxide rg file
+    for tool in fish git starship fzf fd bat eza nvim zellij yazi ya btop dust duf procs jq tldr delta zoxide rg file
         set -l resolved $tool
         if not command -q $resolved
             switch $tool
@@ -58,7 +58,7 @@ function shell-doctor --description 'Check the current Fish session (no network)
         echo '[WARN] ~/.local/bin is not in PATH.'
         set warnings (math $warnings + 1)
     end
-    for tool in fish nvim zellij yazi ya tldr zoxide starship fzf
+    for tool in fish nvim zellij yazi ya tldr zoxide starship fzf dust duf procs
         set -l resolved_path (command -s $tool)
         if test -x "$HOME/.local/bin/$tool"; and test "$resolved_path" != "$HOME/.local/bin/$tool"
             echo "[WARN] $tool user installation is shadowed by PATH."

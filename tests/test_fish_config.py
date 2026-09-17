@@ -206,19 +206,19 @@ FISH
             self.assertIn("eza not installed",result.stdout)
             self.assertIn("fzf Fish bindings are not loaded",result.stdout)
 
-    def test_optional_starship_and_fzf_installation(self):
+    def test_optional_tool_installation(self):
         repo=self.root/"repo"
         shutil.copytree(ROOT/"scripts",repo/"scripts")
         shutil.copytree(ROOT/"fish",repo/"fish")
         shutil.copyfile(ROOT/"LICENSE",repo/"LICENSE")
-        for tool in ("starship","fzf"):
+        for tool in ("starship","fzf","dust","duf","procs"):
             (repo/"scripts"/("install-"+tool+".sh")).write_text(
                 '#!/bin/bash\nprintf installed > "$HOME/'+tool+'-installed"\n')
         result=subprocess.run(["bash",str(repo/"scripts/install-fish-config.sh"),
-                               "--config-only","--starship","--fzf"],
+                               "--config-only","--starship","--fzf","--dust","--duf","--procs"],
                               env=self.env,capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
-        for tool in ("starship","fzf"):
+        for tool in ("starship","fzf","dust","duf","procs"):
             self.assertEqual((self.home/(tool+"-installed")).read_text(),"installed")
 
     def test_update_wrapper_uses_fish_category(self):

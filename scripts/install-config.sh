@@ -4,7 +4,7 @@ set -euo pipefail
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib/install-common.sh"
 
 if [[ ${1:-} == --help ]]; then
-  printf '%s\n' 'Usage: bash scripts/install-config.sh [--astronvim] [--zellij] [--yazi] [--tealdeer] [--zoxide] [--starship] [--fzf] [--delta]' \
+  printf '%s\n' 'Usage: bash scripts/install-config.sh [--astronvim] [--zellij] [--yazi] [--tealdeer] [--zoxide] [--starship] [--fzf] [--dust] [--duf] [--procs] [--delta]' \
     'Backs up and installs Zsh configuration for the current user.' \
     '--astronvim: install latest stable Neovim; add AstroNvim only when nvim config is absent.' \
     '--zellij: install latest stable Zellij from GitHub.' \
@@ -13,6 +13,7 @@ if [[ ${1:-} == --help ]]; then
     '--zoxide: install latest stable zoxide from GitHub.' \
     '--starship: install latest stable Starship from GitHub.' \
     '--fzf: install latest stable fzf with bundled shell integration.' \
+    '--dust / --duf / --procs: install latest stable disk and process tools.' \
     '--delta: configure Git to use delta, backing up existing Git config.'
   exit 0
 fi
@@ -23,7 +24,7 @@ yazi=0
 tealdeer=0
 zoxide=0
 starship=0
-fzf=0
+fzf=0 dust=0 duf=0 procs=0
 for arg in "$@"; do
   case "$arg" in
     --astronvim) astro=1 ;;
@@ -34,6 +35,9 @@ for arg in "$@"; do
     --zoxide) zoxide=1 ;;
     --starship) starship=1 ;;
     --fzf) fzf=1 ;;
+    --dust) dust=1 ;;
+    --duf) duf=1 ;;
+    --procs) procs=1 ;;
     *) printf 'Unknown option: %s\n' "$arg" >&2; exit 2 ;;
   esac
 done
@@ -85,9 +89,9 @@ if (( zoxide )); then
   export PATH="$HOME/.local/bin:$PATH"
   hash -r
 fi
-for tool in starship fzf; do
+for tool in starship fzf dust duf procs; do
   selected=0
-  case "$tool" in starship) selected=$starship ;; fzf) selected=$fzf ;; esac
+  case "$tool" in starship) selected=$starship ;; fzf) selected=$fzf ;; dust) selected=$dust ;; duf) selected=$duf ;; procs) selected=$procs ;; esac
   if (( selected )); then
     INSTALL_STEP="install-$tool"
     bash "$repo_dir/scripts/install-$tool.sh"

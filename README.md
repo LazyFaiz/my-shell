@@ -95,3 +95,15 @@ exec zsh
 
 - Zsh 配置参考 [radleylewis/zsh](https://github.com/radleylewis/zsh)，保留其 [MIT 许可](LICENSE)。
 - Starship 主题使用官方 [Pastel Powerline Preset](https://starship.rs/presets/pastel-powerline)。
+
+
+## 磁盘与进程工具
+
+支持 dust（目录占用）、duf（磁盘容量）、procs（进程查询），直接使用同名命令，保留原有 `du`、`df`、`ps`。
+
+```sh
+bash scripts/install-config.sh --dust --duf --procs
+shell-update tools dust duf procs
+```
+
+首次安装后重启当前 Shell。三个工具均使用官方最新稳定版、校验 SHA-256、备份旧入口，已纳入 `shell-doctor` 和统一更新。安装依赖、独立安装与恢复方式见 [安装指南](docs/install.md#dustduf-与-procs)。

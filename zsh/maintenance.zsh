@@ -7,7 +7,7 @@ shell-doctor() {
   print -- "Zsh $ZSH_VERSION | $(uname -s) $(uname -m)"
   print -- "Config: ${ZSH_CONFIG_DIR:-${ZDOTDIR:-$HOME/.config/zsh}}"
   print -- '--- Commands and versions ---'
-  for tool in zsh git starship fzf fd bat eza nvim zellij yazi ya btop jq tldr delta zoxide rg file; do
+  for tool in zsh git starship fzf fd bat eza nvim zellij yazi ya btop dust duf procs jq tldr delta zoxide rg file; do
     local resolved=$tool
     (( $+commands[$resolved] )) || {
       [[ $tool != fd ]] || resolved=fdfind
@@ -46,7 +46,7 @@ shell-doctor() {
   if [[ ${path[(Ie)$HOME/.local/bin]} == 0 ]]; then
     print '[WARN] ~/.local/bin is not in PATH.'; (( warnings++ ))
   fi
-  for tool in nvim zellij yazi ya tldr zoxide starship fzf; do
+  for tool in nvim zellij yazi ya tldr zoxide starship fzf dust duf procs; do
     if [[ -x "$HOME/.local/bin/$tool" && ${commands[$tool]:-} != "$HOME/.local/bin/$tool" ]]; then
       print -- "[WARN] $tool user installation is shadowed; put ~/.local/bin first and run rehash."
       (( warnings++ ))
